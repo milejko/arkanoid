@@ -1,0 +1,73 @@
+# Historia komend
+
+Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji będzie dopisywane poniżej.
+
+## Komendy użytkownika
+
+1. `Create a simple webpage where a ball bounces around the screen.`
+2. `okay so if we have this ball bouncing, maybe let's do arkanoid style game`
+3. `okay, I would like bricks to have 3d effect`
+4. `chodzilo mi o efekt neonu czyli litery powinny miec podwojne krawedzie i rozne kolory, dodatkowo zachowaj wielkosci liter "TechHub ARCANOID"`
+5. `kazda litera w innym kolorze i ciut wieksze`
+6. `usun tez te blende z instrukcja z prawej strony`
+7. `lewa blenda wyzej`
+8. `dodajmy troche bonusow - okreslone kafelki - w sumie 10% daja bonusy -> wydluzenie rakietki, lub "klejaca rakietka" - pilka musi byc wyslana spacja, lub strzelajaca rakietka -> tez spacja`
+9. `bonusy zawsze tajne - zloty kolor plytki, bez oznaczenia literowego`
+10. `dlugosci moga sie sumowac czyli x2 x3 x4, nie powinny byc ograniczone czasowo, tak samo klej i strzelanie, spadajacy bonus tez powinien byc niespodzianka (plus animowany podczas spadania), dodatkowo jesli paletka jest klejaca powinna miec gradient do zielonego (klej) a jesli strzelajaca powinna miec wypustki w miejscach skad wylatuja strzaly`
+11. `poprawka - bonusy sie sumuja - paletka moze byc dluga szeroka klejaca i strzelajaca, poprawka 2: jesli paletka jest klejaca pileczka przykleja sie w miejscu gdzie upadla (nie na srodku)`
+12. `bug - przyklejenie dziala ok, ale po przesunieciu paletki przyklejona pilka przemieszcza sie do srodka`
+13. `dwie sprawy - po utracie zycia bonusy przepadaja, wprowadzamy negatywne bonusy - skrocenie paletki do 1/2 i 1/3, przyspieszenie pileczki x2 x3 - ukryte w normalnych bonusach. Nowosc graficzna - spadajacy bonus - jak animacja spadajacej monety`
+14. `bonusy negatywne powinny wchodzic stopniowo - czyli skrocenie najpierw 3/4 potem 1/2 potem 1/4. Powinny byc kasowane przez bonusy pozytywne czyli zwiekszenia. Podobnie predkosc pilki. Zmieniam zdanie - podczas lotu bonus pozytywny powinien miec bardziej czerwony kolor, a ten pozytywny bardziej zielony. Animacja obrotu - os obrotu monety w poziomie, nie w pionie, ciut wieksza moneta`
+15. `wiecej bonusowych klockow + moneta powinna obracac sie wokol osi poziomej`
+16. `bug: moneta niepotrzebnie zmienia swoja szerokosc podczas spadania`
+17. `2 wiecej blokow nizsze i wezsze`
+18. `wezsze kafle o 30%`
+19. `ale na cala szerokosc ekranu`
+20. `bug: po zgubieniu pilki powinny przepadac wszystkie bonusy - i pozytywne i negatywne`
+21. `te kafelki nie powinny miec przerw pomiedzy, tylko byc sklejone`
+22. `powinny miec niewielkie, rownomierne przerwy`
+23. `3px`
+24. `teraz layout to 5x11, chcialbym 6x 12 i odstep 5px`
+25. `armata do strzelania na srodku rakietki`
+26. `zmiana wygladu bonusow powinny byc oznaczone jednak i w ksztalcie podluznej tabletki`
+27. `ta tabletka animowana podobnie jak byla ta moneta i ciut wieksza`
+28. `ladnie, bonusy bardziej kolorowe - pozytywne: zloto zielone (gradient), negatywne: zloto-czerwone`
+29. `ciagle blade`
+30. `przy bonusie klej - nie jest potrzebny monit o spacji`
+31. `zamiast liter na bonusach zaproponuj piktogram + jeszcze bardziej zielone i czerwone te tabletki`
+32. `jeszcze wiecej kafli 6x15`
+33. `to teraz popracujmy nad mechanika bonusow dlugosci i szybkosci. powiekszanie paletki zawsze +50%, zmniejszanie zawsze -50%. przyspieszanie pileczki +25%, spowalnianie -25%.`
+34. `fix - mechanika "kleju" - po 5s pilka startuje sama`
+35. `dobra, co do dlugosci i predkosci, zrobmy skokowo, czyli dlugosc +50% +100% +150% (max) -25% -50% -75%, predkosc od -75%, -50%, -25%, 0, +25%, +50%, +100%`
+36. `klej powinien puszczac jednak po 3sekundach`
+37. `bug: wolniejsza pilka to bonus pozytywny a szybsza to negatywny`
+38. `zapanie bonusa pozytywnego +200 punktow, negatywnego +400 punktow, poprawka graficzna - logo wielkosci blendy, blenda wysrodkowana horyzontalnie z logo`
+39. `logo po lewej, blenda po prawej wysrodkowane w poziomie - srodek wysokosci logo na srodku wysokosci HUD`
+40. `prawie idealnie - logo do lewej, HUD do prawej`
+41. `wolalbym logo zupelnie do lewej (oczywiscie z marginesem) a hud zupelnie do prawej z rownym marginesem jak logo`
+42. `niech bonus klej i armata znikaja po 30s`
+43. `okay znikanie kleju i armaty 15s`
+44. `w hud bonusy z piktogramami`
+45. `fix napisu Logo - TechHUB Arkanoid`
+46. `usuwamy bonus z HUD`
+47. `bardzo rzadki bonus (10%) +1 zycie z piktogramem`
+48. `czy pilka moglaby lekko smuzyc?`
+49. `dobra wprowadzamy levele po zbiciu wszystkich cegiel. Obecna, bazowa predkosc pilki zostaje w levelu 1, kazdy kolejny level podnosi poziom o 10%. Dodatkowo z planszy na danym poziomie znika losowo tyle kafelkow ktory mamy poziom`
+50. `zmiana graficzna - level jest najwiekszy powinien byc pierwszy w HUD i numerek wieksza czcionka. zmiana mechaniki spowalniania/przyspieszania - przyspieszenie +25, spowolnienie -25% ale tylko na 15 sekund + oznaczenie graficzne - przyspieszona - mniej smuzy, spowolniona znacznie bardziej smuzy`
+51. `usuwamy z hud ilosc cegiel, level ta sama wielkosc czcionki co wynik, ilosc zyc prezentujemy serduszkami max 3 zycia (bonus zyc nie dodaje powyzej 3). Czcionka o stalej szerokosci`
+52. `zapisz do pliku MD np. history.md moje "komendy" i utrzymuj ich historie przy kolejnych komendach`
+53. `zmien TechHub Arkanoid na Sanoma Arkanoid`
+54. `poziomy sa za dlugie - 5 x 10 kafle`
+55. `ilosc kafli zalezna od poziomu wedlug wzoru: wysokosc = 5+zaokraglij((poziom -1) / 5) , szerokosc = 8 + zaokraglij((poziom-1) / 2)`
+56. `wysokosc 4 + round((level -1)/4) kafelki wyzsze niz poprzednio o 10%`
+57. `bonus zycia mozemy dac rownie czesto co pozostale`
+58. `zajmijmy sie piktogramami na tabletkach bonusu - wolalbym dla armaty - pistolet, dla zmniejszania predkosci strzaleczki w lewo, dla zwiekszania w prawo, zycie = serduszko, dlugosc paletki symbol <-> dla zwiekszania i >< dla skracania`
+59. `usuwanie tych cegiel zgodne z poziomem wyglada jak blad, usunmy te funkcje`
+60. `poprzednie ikony bardziej mi sie podobaly, zostawmy z nowych tylko pistolet`
+61. `bug: ikonki przyspieszenia i spowolnienia sa na odwrot`
+62. `ta ikona pistoletu jest nieczytelna, moze luk i strzala? no i ikona kleju jest niejasna, sprobujmy z inna`
+63. `ruch klawiatura powinien byc szybszy o 50% niz obecnie`
+64. `ikona serca na tabletce powinna byc "pelna" nie tylko kontur, ikona kleju inna, moze jako plama`
+65. `po zakonczeniu gry robimy "hi-score" trzymamy go w local storage, dajemy opcje wpisu inicjalu max. 10 znakow. Tablica wynikow prezentowana jest na starcie i na koncu gry. zawiera - imie, level ilosc punktow`
+66. `te serca na tabletkach w ogole nie przypominaja serca`
+67. `podwyzsz odrobine pozycje rakietki i dodaj kontrolki dla mobile: guzik w lewo, start/strzal, guzik w prawo`

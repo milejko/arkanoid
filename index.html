@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sanoma Arkanoid</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="top-chrome">
+      <header class="brand-banner" aria-label="Branding">
+        <div class="brand-mark" aria-label="Sanoma Arkanoid">
+          <span class="brand-word" aria-hidden="true">
+            <span class="brand-letter color-1" data-text="S">S</span>
+            <span class="brand-letter color-2" data-text="a">a</span>
+            <span class="brand-letter color-3" data-text="n">n</span>
+            <span class="brand-letter color-4" data-text="o">o</span>
+            <span class="brand-letter color-5" data-text="m">m</span>
+            <span class="brand-letter color-6" data-text="a">a</span>
+          </span>
+          <span class="brand-word" aria-hidden="true">
+            <span class="brand-letter color-7" data-text="A">A</span>
+            <span class="brand-letter color-8" data-text="r">r</span>
+            <span class="brand-letter color-9" data-text="k">k</span>
+            <span class="brand-letter color-10" data-text="a">a</span>
+            <span class="brand-letter color-11" data-text="n">n</span>
+            <span class="brand-letter color-12" data-text="o">o</span>
+            <span class="brand-letter color-13" data-text="i">i</span>
+            <span class="brand-letter color-14" data-text="d">d</span>
+          </span>
+        </div>
+      </header>
+
+      <div class="hud">
+        <div class="panel stats" aria-live="polite">
+          <div class="stat stat-level">
+            <span class="label">Poziom</span>
+            <span class="value" id="level">1</span>
+          </div>
+          <div class="stat">
+            <span class="label">Wynik</span>
+            <span class="value" id="score">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Życia</span>
+            <span class="value value-lives" id="lives">♥ ♥ ♥</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="leaderboard-overlay" id="leaderboardOverlay">
+      <section class="leaderboard-card" aria-labelledby="leaderboardTitle">
+        <p class="leaderboard-kicker">Hi-Score</p>
+        <h2 class="leaderboard-title" id="leaderboardTitle">Tablica wyników</h2>
+        <p class="leaderboard-subtitle" id="leaderboardSubtitle">
+          Najlepsze lokalne wyniki. Naciśnij Spację albo kliknij Start.
+        </p>
+
+        <form class="leaderboard-form hidden" id="scoreForm" autocomplete="off">
+          <label class="leaderboard-label" for="playerName">Imię / inicjał</label>
+          <div class="leaderboard-form-row">
+            <input
+              class="leaderboard-input"
+              id="playerName"
+              name="playerName"
+              type="text"
+              maxlength="10"
+              placeholder="AAA"
+            />
+            <button class="leaderboard-button" type="submit">Zapisz wynik</button>
+          </div>
+        </form>
+
+        <p class="leaderboard-empty hidden" id="leaderboardEmpty">
+          Brak zapisanych wyników. Czas to zmienić.
+        </p>
+
+        <table class="leaderboard-table" aria-label="Tablica wyników">
+          <thead>
+            <tr>
+              <th>Imię</th>
+              <th>Level</th>
+              <th>Punkty</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+
+        <div class="leaderboard-actions">
+          <button class="leaderboard-button leaderboard-button-secondary" id="leaderboardStartButton" type="button">
+            Start
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <canvas id="scene" aria-label="Gra w stylu Arkanoid"></canvas>
+
+    <div class="mobile-controls" aria-label="Sterowanie mobilne">
+      <button class="mobile-button mobile-button-direction" id="mobileLeftButton" type="button" aria-label="Ruch w lewo">
+        ◀
+      </button>
+      <button class="mobile-button mobile-button-action" id="mobileActionButton" type="button" aria-label="Start lub strzał">
+        START / STRZAŁ
+      </button>
+      <button class="mobile-button mobile-button-direction" id="mobileRightButton" type="button" aria-label="Ruch w prawo">
+        ▶
+      </button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
