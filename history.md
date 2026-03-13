@@ -71,3 +71,7 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 65. `po zakonczeniu gry robimy "hi-score" trzymamy go w local storage, dajemy opcje wpisu inicjalu max. 10 znakow. Tablica wynikow prezentowana jest na starcie i na koncu gry. zawiera - imie, level ilosc punktow`
 66. `te serca na tabletkach w ogole nie przypominaja serca`
 67. `podwyzsz odrobine pozycje rakietki i dodaj kontrolki dla mobile: guzik w lewo, start/strzal, guzik w prawo`
+68. `Analyze this codebase and create a .github/copilot-instructions.md file to help future Copilot sessions work effectively in this repository.`
+69. `zerknij na history.md to moja lista instarukcji`
+70. `dobra wprowadzilem drobna zmiane z kontrolkami dla mobile - ona nie ma sensu wycofaj ja`
+71. `ok, zapomniales zaktualizowac history.md`

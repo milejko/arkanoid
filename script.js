@@ -11,9 +11,6 @@ const leaderboardEmptyElement = document.getElementById("leaderboardEmpty");
 const scoreFormElement = document.getElementById("scoreForm");
 const playerNameInput = document.getElementById("playerName");
 const leaderboardStartButton = document.getElementById("leaderboardStartButton");
-const mobileLeftButton = document.getElementById("mobileLeftButton");
-const mobileActionButton = document.getElementById("mobileActionButton");
-const mobileRightButton = document.getElementById("mobileRightButton");
 
 const controls = {
   left: false,
@@ -1386,39 +1383,6 @@ function handleAction() {
   }
 }
 
-function bindMobileHold(button, direction) {
-  const activate = (event) => {
-    event.preventDefault();
-
-    if (leaderboardState.mode || isTextEntryActive()) {
-      return;
-    }
-
-    controls.left = direction < 0;
-    controls.right = direction > 0;
-    button.classList.add("is-pressed");
-  };
-
-  const release = (event) => {
-    if (event) {
-      event.preventDefault();
-    }
-
-    if (direction < 0) {
-      controls.left = false;
-    } else {
-      controls.right = false;
-    }
-
-    button.classList.remove("is-pressed");
-  };
-
-  button.addEventListener("pointerdown", activate);
-  button.addEventListener("pointerup", release);
-  button.addEventListener("pointercancel", release);
-  button.addEventListener("pointerleave", release);
-}
-
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
 
@@ -1484,25 +1448,6 @@ scoreFormElement.addEventListener("submit", (event) => {
 leaderboardStartButton.addEventListener("click", () => {
   startFromLeaderboard();
 });
-
-mobileActionButton.addEventListener("pointerdown", (event) => {
-  event.preventDefault();
-  mobileActionButton.classList.add("is-pressed");
-  handleAction();
-});
-
-mobileActionButton.addEventListener("pointerup", (event) => {
-  event.preventDefault();
-  mobileActionButton.classList.remove("is-pressed");
-});
-
-mobileActionButton.addEventListener("pointercancel", (event) => {
-  event.preventDefault();
-  mobileActionButton.classList.remove("is-pressed");
-});
-
-bindMobileHold(mobileLeftButton, -1);
-bindMobileHold(mobileRightButton, 1);
 
 let lastTimestamp = performance.now();
 

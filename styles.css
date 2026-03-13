@@ -24,54 +24,6 @@ canvas {
   display: none !important;
 }
 
-.mobile-controls {
-  position: fixed;
-  left: 1rem;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 2;
-  display: none;
-  grid-template-columns: 1fr 1.25fr 1fr;
-  gap: 0.75rem;
-  pointer-events: none;
-}
-
-.mobile-button {
-  min-height: 3.9rem;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.92)),
-    radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 50%);
-  color: #f8fafc;
-  font: inherit;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  box-shadow:
-    0 14px 32px rgba(2, 6, 23, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  pointer-events: auto;
-  touch-action: manipulation;
-  user-select: none;
-}
-
-.mobile-button:active,
-.mobile-button.is-pressed {
-  transform: translateY(1px) scale(0.99);
-  background:
-    linear-gradient(180deg, rgba(37, 99, 235, 0.96), rgba(30, 64, 175, 0.94)),
-    radial-gradient(circle at top, rgba(125, 211, 252, 0.28), transparent 54%);
-}
-
-.mobile-button-direction {
-  font-size: 1.55rem;
-}
-
-.mobile-button-action {
-  font-size: 0.92rem;
-  text-transform: uppercase;
-}
-
 .brand-banner {
   position: relative;
   z-index: 2;
@@ -483,11 +435,5 @@ canvas {
 
   .leaderboard-button {
     width: 100%;
-  }
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .mobile-controls {
-    display: grid;
   }
 }
