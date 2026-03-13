@@ -6,10 +6,12 @@ const levelElement = document.getElementById("level");
 const leaderboardOverlay = document.getElementById("leaderboardOverlay");
 const leaderboardTitleElement = document.getElementById("leaderboardTitle");
 const leaderboardSubtitleElement = document.getElementById("leaderboardSubtitle");
+const leaderboardStatusElement = document.getElementById("leaderboardStatus");
 const leaderboardBodyElement = document.getElementById("leaderboardBody");
 const leaderboardEmptyElement = document.getElementById("leaderboardEmpty");
 const scoreFormElement = document.getElementById("scoreForm");
 const playerNameInput = document.getElementById("playerName");
+const scoreSubmitButton = document.getElementById("scoreSubmitButton");
 const leaderboardStartButton = document.getElementById("leaderboardStartButton");
 
 const controls = {
@@ -17,13 +19,18 @@ const controls = {
   right: false,
 };
 
-const HIGH_SCORE_STORAGE_KEY = "sanoma-arkanoid-high-scores";
+const LEADERBOARD_API_URL =
+  "https://script.google.com/macros/s/AKfycbxWd5-hm3rPJfLQKGG-sE76EJwuNa_e_QmULWgmPK0yZnfXRwLu7Td24FgnRwUFfZoy/exec";
 const MAX_HIGH_SCORES = 10;
 const PADDLE_BOTTOM_OFFSET = 66;
 
 const leaderboardState = {
   mode: null,
   scoreSaved: false,
+  loading: false,
+  saving: false,
+  statusMessage: "",
+  statusTone: "info",
 };
 
 const game = {
@@ -118,7 +125,7 @@ const bonusCatalog = {
   },
 };
 
-let highScores = loadHighScores();
+let highScores = [];
 
 function sanitizePlayerName(name) {
   return name.replace(/\s+/g, " ").trim().slice(0, 10).toUpperCase();
@@ -148,42 +155,153 @@ function normalizeHighScoreEntry(entry) {
   };
 }
 
-function loadHighScores() {
+function isLeaderboardBackendConfigured() {
+  return !LEADERBOARD_API_URL.includes("REPLACE_WITH_DEPLOYED_WEB_APP_ID");
+}
+
+function getLeaderboardStatusMessage() {
+  if (leaderboardState.saving) {
+    return {
+      tone: "info",
+      text: "Zapisywanie wyniku do globalnej tablicy...",
+    };
+  }
+
+  if (leaderboardState.loading) {
+    return {
+      tone: "info",
+      text: "Ładowanie globalnej tablicy wyników...",
+    };
+  }
+
+  if (leaderboardState.statusMessage) {
+    return {
+      tone: leaderboardState.statusTone,
+      text: leaderboardState.statusMessage,
+    };
+  }
+
+  return null;
+}
+
+function renderLeaderboardStatus() {
+  const status = getLeaderboardStatusMessage();
+
+  leaderboardStatusElement.classList.add("hidden");
+  leaderboardStatusElement.classList.remove(
+    "leaderboard-status-info",
+    "leaderboard-status-error"
+  );
+
+  if (!status) {
+    leaderboardStatusElement.textContent = "";
+    return;
+  }
+
+  leaderboardStatusElement.textContent = status.text;
+  leaderboardStatusElement.classList.remove("hidden");
+  leaderboardStatusElement.classList.add(
+    status.tone === "error" ? "leaderboard-status-error" : "leaderboard-status-info"
+  );
+}
+
+function parseLeaderboardPayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Nieprawidłowa odpowiedź backendu leaderboardu.");
+  }
+
+  if (payload.ok === false) {
+    throw new Error(
+      typeof payload.error === "string" && payload.error
+        ? payload.error
+        : "Backend leaderboardu zwrócił błąd."
+    );
+  }
+
+  if (!Array.isArray(payload.entries)) {
+    throw new Error("Backend leaderboardu nie zwrócił listy wyników.");
+  }
+
+  return payload.entries
+    .map(normalizeHighScoreEntry)
+    .filter(Boolean)
+    .sort(sortHighScores)
+    .slice(0, MAX_HIGH_SCORES);
+}
+
+async function fetchLeaderboardEntries() {
+  if (!isLeaderboardBackendConfigured()) {
+    throw new Error(
+      "Backend leaderboardu nie jest jeszcze skonfigurowany. Wdróż Apps Script i podmień LEADERBOARD_API_URL."
+    );
+  }
+
+  const response = await window.fetch(
+    `${LEADERBOARD_API_URL}?limit=${encodeURIComponent(MAX_HIGH_SCORES)}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Nie udało się pobrać wyników (${response.status}).`);
+  }
+
+  return parseLeaderboardPayload(await response.json());
+}
+
+async function refreshHighScores() {
+  if (leaderboardState.loading || leaderboardState.saving) {
+    return;
+  }
+
+  leaderboardState.loading = true;
+  leaderboardState.statusMessage = "";
+  renderLeaderboard();
+
   try {
-    const serialized = window.localStorage.getItem(HIGH_SCORE_STORAGE_KEY);
-
-    if (!serialized) {
-      return [];
-    }
-
-    const parsed = JSON.parse(serialized);
-
-    if (!Array.isArray(parsed)) {
-      console.warn("Nieprawidlowy format tablicy wynikow w localStorage.");
-      return [];
-    }
-
-    return parsed
-      .map(normalizeHighScoreEntry)
-      .filter(Boolean)
-      .sort(sortHighScores)
-      .slice(0, MAX_HIGH_SCORES);
+    highScores = await fetchLeaderboardEntries();
+    leaderboardState.statusMessage = "";
   } catch (error) {
-    console.warn("Nie udalo sie odczytac tablicy wynikow.", error);
-    return [];
+    leaderboardState.statusMessage =
+      error instanceof Error ? error.message : "Nie udało się pobrać leaderboardu.";
+    leaderboardState.statusTone = "error";
+  } finally {
+    leaderboardState.loading = false;
+    renderLeaderboard();
   }
 }
 
-function persistHighScores() {
-  try {
-    window.localStorage.setItem(HIGH_SCORE_STORAGE_KEY, JSON.stringify(highScores));
-  } catch (error) {
-    console.warn("Nie udalo sie zapisac tablicy wynikow.", error);
+async function persistHighScore(entry) {
+  if (!isLeaderboardBackendConfigured()) {
+    throw new Error(
+      "Backend leaderboardu nie jest jeszcze skonfigurowany. Wdróż Apps Script i podmień LEADERBOARD_API_URL."
+    );
   }
+
+  const response = await window.fetch(LEADERBOARD_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8",
+    },
+    body: JSON.stringify(entry),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Nie udało się zapisać wyniku (${response.status}).`);
+  }
+
+  return parseLeaderboardPayload(await response.json());
 }
 
 function renderHighScores() {
   leaderboardBodyElement.innerHTML = "";
+
+  if (leaderboardState.loading) {
+    leaderboardEmptyElement.classList.add("hidden");
+    return;
+  }
 
   if (!highScores.length) {
     leaderboardEmptyElement.classList.remove("hidden");
@@ -223,9 +341,13 @@ function renderLeaderboard() {
     ? shouldShowForm
       ? `Wpisz imię i zapisz wynik: level ${game.level}, ${game.score} pkt.`
       : `Wynik zapisany. Level ${game.level}, ${game.score} pkt.`
-    : "Najlepsze lokalne wyniki. Naciśnij Spację albo kliknij Start.";
+    : "Najlepsze globalne wyniki. Naciśnij Spację albo kliknij Start.";
   leaderboardStartButton.textContent = isIntro ? "Start" : "Nowa gra";
   scoreFormElement.classList.toggle("hidden", !shouldShowForm);
+  playerNameInput.disabled = leaderboardState.saving;
+  scoreSubmitButton.disabled = leaderboardState.saving;
+  leaderboardStartButton.disabled = leaderboardState.saving;
+  renderLeaderboardStatus();
   renderHighScores();
 }
 
@@ -240,6 +362,7 @@ function showLeaderboard(mode) {
   }
 
   renderLeaderboard();
+  void refreshHighScores();
 
   if (mode === "gameover" && !leaderboardState.scoreSaved) {
     playerNameInput.focus();
@@ -253,19 +376,35 @@ function hideLeaderboard() {
   renderLeaderboard();
 }
 
-function saveCurrentScore() {
+async function saveCurrentScore() {
   const entry = normalizeHighScoreEntry({
     name: playerNameInput.value,
     level: game.level,
     score: game.score,
   });
 
-  highScores = [entry, ...highScores].sort(sortHighScores).slice(0, MAX_HIGH_SCORES);
-  leaderboardState.scoreSaved = true;
+  leaderboardState.saving = true;
+  leaderboardState.statusMessage = "";
   playerNameInput.value = entry.name;
-  persistHighScores();
   renderLeaderboard();
-  leaderboardStartButton.focus();
+
+  try {
+    highScores = await persistHighScore(entry);
+    leaderboardState.scoreSaved = true;
+    leaderboardState.statusMessage = "Wynik zapisany w globalnej tablicy.";
+    leaderboardState.statusTone = "info";
+  } catch (error) {
+    leaderboardState.statusMessage =
+      error instanceof Error ? error.message : "Nie udało się zapisać wyniku.";
+    leaderboardState.statusTone = "error";
+  } finally {
+    leaderboardState.saving = false;
+    renderLeaderboard();
+  }
+
+  if (leaderboardState.scoreSaved) {
+    leaderboardStartButton.focus();
+  }
 }
 
 function isTextEntryActive() {
@@ -273,6 +412,10 @@ function isTextEntryActive() {
 }
 
 function startFromLeaderboard() {
+  if (leaderboardState.saving) {
+    return;
+  }
+
   const needsReset = leaderboardState.mode === "gameover";
 
   if (needsReset) {
@@ -1442,7 +1585,7 @@ playerNameInput.addEventListener("input", () => {
 
 scoreFormElement.addEventListener("submit", (event) => {
   event.preventDefault();
-  saveCurrentScore();
+  void saveCurrentScore();
 });
 
 leaderboardStartButton.addEventListener("click", () => {

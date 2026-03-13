@@ -54,8 +54,9 @@
         <p class="leaderboard-kicker">Hi-Score</p>
         <h2 class="leaderboard-title" id="leaderboardTitle">Tablica wyników</h2>
         <p class="leaderboard-subtitle" id="leaderboardSubtitle">
-          Najlepsze lokalne wyniki. Naciśnij Spację albo kliknij Start.
+          Najlepsze globalne wyniki. Naciśnij Spację albo kliknij Start.
         </p>
+        <p class="leaderboard-status hidden" id="leaderboardStatus" aria-live="polite"></p>
 
         <form class="leaderboard-form hidden" id="scoreForm" autocomplete="off">
           <label class="leaderboard-label" for="playerName">Imię / inicjał</label>
@@ -68,7 +69,7 @@
               maxlength="10"
               placeholder="AAA"
             />
-            <button class="leaderboard-button" type="submit">Zapisz wynik</button>
+            <button class="leaderboard-button" id="scoreSubmitButton" type="submit">Zapisz wynik</button>
           </div>
         </form>
 

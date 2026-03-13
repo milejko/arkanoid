@@ -12,7 +12,7 @@
 - The game loop is `animate()`, which advances input-driven movement and timers first, updates ball physics only while `game.running` is true, then renders in a fixed order with `drawBackground()`, `drawBricks()`, `drawFallingBonuses()`, `drawProjectiles()`, `drawPaddle()`, `drawBall()`, and `drawMessage()`.
 - Layout is derived at runtime instead of being hardcoded per level. `resizeCanvas()` recalculates canvas dimensions and attached-ball positioning, while `createBricks()` and `layoutBricks()` compute the brick grid from `getBrickRows()` / `getBrickColumns()` and then randomly assign bonus bricks.
 - Game flow is split between round-level reset and whole-game reset. `resetRound()` recenters the paddle/ball and preserves the current board, while `resetGame()` also resets score, lives, level, effects, and bricks. `loseLife()` clears active effects and falling entities before either starting the next round or showing the leaderboard overlay.
-- The leaderboard is entirely local-browser state. `loadHighScores()`, `normalizeHighScoreEntry()`, `persistHighScores()`, and `renderLeaderboard()` manage `localStorage` under the key `sanoma-arkanoid-high-scores`; there is no backend or external persistence.
+- The leaderboard now uses a Google Sheets backend via a deployed Google Apps Script web app. The browser reads and writes through `LEADERBOARD_API_URL` in `script.js`, and the server-side script lives in `google-apps-script/Code.gs`.
 
 ## Key conventions
 
@@ -24,5 +24,6 @@
 - Input handling is centralized. Launch/start flows route through `handleAction()`, while horizontal movement comes from keyboard state or pointer movement. New control behavior should usually plug into those paths rather than adding parallel handlers.
 - DOM visibility is driven by CSS classes and specific IDs already wired in `script.js`, especially `.hidden`, `#leaderboardOverlay`, and `#scoreForm`. If you change overlay/HUD structure in HTML, update the matching selectors and event wiring together.
 - High-score entries are normalized before storage: names are trimmed, uppercased, and limited to 10 characters. Preserve that sanitization path when touching leaderboard code.
+- Backend leaderboard changes have to stay in sync across both sides: the frontend payload/response handling in `script.js` and the Apps Script implementation in `google-apps-script/Code.gs`.
 - `history.md` is the main record of the user's past instructions and product decisions, not just a scratch log. Read it before changing gameplay, visuals, copy, or bonus behavior so new work stays aligned with earlier decisions.
 - If future work involves maintaining `history.md`, append new commands instead of rewriting or summarizing the file.
