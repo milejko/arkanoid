@@ -78,3 +78,22 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 72. `kolejna rzecz backend dla leaderboardu, zrobmy to na Google API w oparciu o arkusz kalkulacyjny, ktory jest udostepniony tu: https://docs.google.com/spreadsheets/d/1UaBU1XSWbO0gaPoZ6Xfx3qUPzQaZUZ92T-s9lPSnDo8/edit?usp=sharing`
 73. `bug: na mobile logo / HUD zakrywaja cegly`
 74. `usu prosze dynamiczna zmiane ilosci kafli zostawiamy 5x10`
+75. `obecnie wyniki "online" wolno sie laduja, zrob prosze "kopie" w local storage do lokalnego wyswietlania, ktora bedziesz synchronizowal z Google`
+76. `usun te labelki informacyjne Najlepsze globalne wyniki. Naciśnij Spację albo kliknij Start. Brak zapisanych wyników. Czas to zmienić.`
+77. `Ładowanie globalnej tablicy wyników... zamiast tego animacja 3 kropek`
+78. `te niebieskie statusy typu zapisywanie tez kropki`
+79. `to niepotrzebne: "Wynik zapisany lokalnie i zsynchronizowany z Google." plus te kropki gdzies na dole tego okna statusowego (obok nowa gra, po lewej)`
+80. `wprowadzmy mechanizm pauzy (rozmyty ekran podobnie jak przy hiscore) po nacisnieciu "p"`
+81. `zmniejszmy ilosc kafli - 5x8`
+82. `dwie rzeczy - obszar w ktorym odbija sie pilka nie powinien byc tam gdzie logo i HUD, powinien konczyc sie tam gdzie pierwszy rzad kafli`
+83. `fatalne to logo, uzyjmy oficjalnego logo sanoma - najlepiej w svg`
+84. `kolejna rzecz napis "Naciśnij P, aby wrócić do gry." - do usuniecia, "Nacisnij spacje by wystartowac" - do zamiany na ...`
+85. `blendy startowe "Poziom X - ..." do zmiany na "Poziom X..." i styl blendy jak przy pauzie`
+86. `wszystkie niebieskie napisy na blendach typu "HI-SCORE", "LEVEL", "GAME" zmien na "Arkanoid"`
+87. `"Poziom X..." -> "Poziom X, zaczynamy?"`
+88. `zamiast "Poziom X, zaczynamy?" -> "Poziom X" jako tytul i jako tekst: "Ilosc zyc: X"`
+89. `zamiast ilosc zyc jednak zaczynamy? ale nie w tytule tylko w tekscie`
+90. `opusc kafle o 1 rzad od gory, zeby stworzyla sie przestrzen miedzy krawedzia a pierwszym rzedem kafli patrzac od gory`
+91. `na blendzie pauza w tekscie piktogramy 3x kaw`
+92. `tabletki pozytywne bardziej zielone, negatywne bardziej czerwone`
+93. `blenda startowa zamiast "zaczynamy?" "Zaczynamy?" + piktogram rakiety`

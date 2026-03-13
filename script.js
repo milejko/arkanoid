@@ -5,6 +5,10 @@ const livesElement = document.getElementById("lives");
 const levelElement = document.getElementById("level");
 const topChromeElement = document.querySelector(".top-chrome");
 const leaderboardOverlay = document.getElementById("leaderboardOverlay");
+const pauseOverlay = document.getElementById("pauseOverlay");
+const startOverlay = document.getElementById("startOverlay");
+const startOverlayTitleElement = document.getElementById("startOverlayTitle");
+const startOverlaySubtitleElement = document.getElementById("startOverlaySubtitle");
 const leaderboardTitleElement = document.getElementById("leaderboardTitle");
 const leaderboardSubtitleElement = document.getElementById("leaderboardSubtitle");
 const leaderboardStatusElement = document.getElementById("leaderboardStatus");
@@ -14,6 +18,8 @@ const scoreFormElement = document.getElementById("scoreForm");
 const playerNameInput = document.getElementById("playerName");
 const scoreSubmitButton = document.getElementById("scoreSubmitButton");
 const leaderboardStartButton = document.getElementById("leaderboardStartButton");
+const pauseResumeButton = document.getElementById("pauseResumeButton");
+const startOverlayButton = document.getElementById("startOverlayButton");
 
 const controls = {
   left: false,
@@ -23,6 +29,7 @@ const controls = {
 const LEADERBOARD_API_URL =
   "https://script.google.com/macros/s/AKfycbxWd5-hm3rPJfLQKGG-sE76EJwuNa_e_QmULWgmPK0yZnfXRwLu7Td24FgnRwUFfZoy/exec";
 const MAX_HIGH_SCORES = 10;
+const LEADERBOARD_CACHE_KEY = "sanoma-arkanoid-leaderboard-cache";
 const PADDLE_BOTTOM_OFFSET = 66;
 
 const leaderboardState = {
@@ -30,6 +37,7 @@ const leaderboardState = {
   scoreSaved: false,
   loading: false,
   saving: false,
+  showingCachedCopy: false,
   statusMessage: "",
   statusTone: "info",
 };
@@ -39,8 +47,9 @@ const game = {
   lives: 3,
   level: 1,
   running: false,
+  paused: false,
   won: false,
-  message: "Naciśnij Spację, aby wystartować",
+  message: "...",
 };
 
 const paddle = {
@@ -80,15 +89,16 @@ function getBrickRows() {
 }
 
 function getBrickColumns() {
-  return 10;
+  return 8;
 }
 
 function getBrickTopOffset() {
   const chromeBottom = topChromeElement
     ? Math.ceil(topChromeElement.getBoundingClientRect().bottom)
     : 0;
+  const extraTopGap = brickConfig.height + brickConfig.gap;
 
-  return Math.max(brickConfig.topOffset, chromeBottom + 20);
+  return Math.max(brickConfig.topOffset, chromeBottom + 20) + extraTopGap;
 }
 
 const bonusCatalog = {
@@ -164,6 +174,61 @@ function normalizeHighScoreEntry(entry) {
   };
 }
 
+function normalizeHighScoreEntries(entries) {
+  if (!Array.isArray(entries)) {
+    return [];
+  }
+
+  return entries
+    .map(normalizeHighScoreEntry)
+    .filter(Boolean)
+    .sort(sortHighScores)
+    .slice(0, MAX_HIGH_SCORES);
+}
+
+function loadCachedHighScores() {
+  const rawCache = window.localStorage.getItem(LEADERBOARD_CACHE_KEY);
+
+  if (!rawCache) {
+    return [];
+  }
+
+  try {
+    const parsedCache = JSON.parse(rawCache);
+    const cachedEntries = Array.isArray(parsedCache)
+      ? parsedCache
+      : parsedCache && typeof parsedCache === "object"
+        ? parsedCache.entries
+        : [];
+
+    return normalizeHighScoreEntries(cachedEntries);
+  } catch (error) {
+    console.warn("Nie udało się odczytać lokalnej kopii leaderboardu.", error);
+    window.localStorage.removeItem(LEADERBOARD_CACHE_KEY);
+    return [];
+  }
+}
+
+function saveCachedHighScores(entries) {
+  const normalizedEntries = normalizeHighScoreEntries(entries);
+
+  window.localStorage.setItem(
+    LEADERBOARD_CACHE_KEY,
+    JSON.stringify({
+      entries: normalizedEntries,
+      updatedAt: Date.now(),
+    })
+  );
+
+  return normalizedEntries;
+}
+
+function useCachedHighScores() {
+  highScores = loadCachedHighScores();
+  leaderboardState.showingCachedCopy = highScores.length > 0;
+  return leaderboardState.showingCachedCopy;
+}
+
 function isLeaderboardBackendConfigured() {
   return !LEADERBOARD_API_URL.includes("REPLACE_WITH_DEPLOYED_WEB_APP_ID");
 }
@@ -171,20 +236,23 @@ function isLeaderboardBackendConfigured() {
 function getLeaderboardStatusMessage() {
   if (leaderboardState.saving) {
     return {
+      kind: "loading",
       tone: "info",
-      text: "Zapisywanie wyniku do globalnej tablicy...",
+      label: "Zapisywanie",
     };
   }
 
   if (leaderboardState.loading) {
     return {
+      kind: "loading",
       tone: "info",
-      text: "Ładowanie globalnej tablicy wyników...",
+      label: "Ładowanie",
     };
   }
 
   if (leaderboardState.statusMessage) {
     return {
+      kind: "text",
       tone: leaderboardState.statusTone,
       text: leaderboardState.statusMessage,
     };
@@ -207,11 +275,30 @@ function renderLeaderboardStatus() {
     return;
   }
 
-  leaderboardStatusElement.textContent = status.text;
+  leaderboardStatusElement.replaceChildren();
   leaderboardStatusElement.classList.remove("hidden");
   leaderboardStatusElement.classList.add(
     status.tone === "error" ? "leaderboard-status-error" : "leaderboard-status-info"
   );
+
+  if (status.kind === "loading") {
+    const dots = document.createElement("span");
+    dots.className = "loading-dots";
+    dots.setAttribute("aria-label", status.label || "Ładowanie");
+
+    for (let index = 0; index < 3; index += 1) {
+      const dot = document.createElement("span");
+      dot.className = "loading-dot";
+      dot.textContent = ".";
+      dot.style.animationDelay = `${index * 0.18}s`;
+      dots.appendChild(dot);
+    }
+
+    leaderboardStatusElement.appendChild(dots);
+    return;
+  }
+
+  leaderboardStatusElement.textContent = status.text;
 }
 
 function parseLeaderboardPayload(payload) {
@@ -231,11 +318,7 @@ function parseLeaderboardPayload(payload) {
     throw new Error("Backend leaderboardu nie zwrócił listy wyników.");
   }
 
-  return payload.entries
-    .map(normalizeHighScoreEntry)
-    .filter(Boolean)
-    .sort(sortHighScores)
-    .slice(0, MAX_HIGH_SCORES);
+  return normalizeHighScoreEntries(payload.entries);
 }
 
 async function fetchLeaderboardEntries() {
@@ -270,12 +353,16 @@ async function refreshHighScores() {
   renderLeaderboard();
 
   try {
-    highScores = await fetchLeaderboardEntries();
+    highScores = saveCachedHighScores(await fetchLeaderboardEntries());
+    leaderboardState.showingCachedCopy = false;
     leaderboardState.statusMessage = "";
   } catch (error) {
-    leaderboardState.statusMessage =
+    const errorMessage =
       error instanceof Error ? error.message : "Nie udało się pobrać leaderboardu.";
-    leaderboardState.statusTone = "error";
+    leaderboardState.statusMessage = leaderboardState.showingCachedCopy
+      ? `${errorMessage} Wyświetlam lokalną kopię wyników.`
+      : errorMessage;
+    leaderboardState.statusTone = leaderboardState.showingCachedCopy ? "info" : "error";
   } finally {
     leaderboardState.loading = false;
     renderLeaderboard();
@@ -307,13 +394,8 @@ async function persistHighScore(entry) {
 function renderHighScores() {
   leaderboardBodyElement.innerHTML = "";
 
-  if (leaderboardState.loading) {
-    leaderboardEmptyElement.classList.add("hidden");
-    return;
-  }
-
   if (!highScores.length) {
-    leaderboardEmptyElement.classList.remove("hidden");
+    leaderboardEmptyElement.classList.toggle("hidden", leaderboardState.loading);
     return;
   }
 
@@ -350,7 +432,7 @@ function renderLeaderboard() {
     ? shouldShowForm
       ? `Wpisz imię i zapisz wynik: level ${game.level}, ${game.score} pkt.`
       : `Wynik zapisany. Level ${game.level}, ${game.score} pkt.`
-    : "Najlepsze globalne wyniki. Naciśnij Spację albo kliknij Start.";
+    : "";
   leaderboardStartButton.textContent = isIntro ? "Start" : "Nowa gra";
   scoreFormElement.classList.toggle("hidden", !shouldShowForm);
   playerNameInput.disabled = leaderboardState.saving;
@@ -360,7 +442,59 @@ function renderLeaderboard() {
   renderHighScores();
 }
 
+function renderPauseOverlay() {
+  pauseOverlay.classList.toggle("hidden", !game.paused);
+}
+
+function renderStartOverlay() {
+  const shouldShowStartOverlay = Boolean(game.message) && !leaderboardState.mode && !game.paused;
+  startOverlay.classList.toggle("hidden", !shouldShowStartOverlay);
+
+  if (!shouldShowStartOverlay) {
+    return;
+  }
+
+  startOverlayTitleElement.textContent = game.message;
+  startOverlaySubtitleElement.textContent = "Zaczynamy? 🚀";
+}
+
+function pauseGame() {
+  if (leaderboardState.mode || game.paused || !game.running) {
+    return;
+  }
+
+  game.paused = true;
+  controls.left = false;
+  controls.right = false;
+  renderStartOverlay();
+  renderPauseOverlay();
+  pauseResumeButton.focus();
+}
+
+function resumeGame() {
+  if (!game.paused) {
+    return;
+  }
+
+  game.paused = false;
+  controls.left = false;
+  controls.right = false;
+  lastPointerMoveTime = 0;
+  renderPauseOverlay();
+  renderStartOverlay();
+}
+
+function togglePause() {
+  if (game.paused) {
+    resumeGame();
+    return;
+  }
+
+  pauseGame();
+}
+
 function showLeaderboard(mode) {
+  game.paused = false;
   leaderboardState.mode = mode;
   leaderboardState.scoreSaved = mode !== "gameover";
   controls.left = false;
@@ -370,6 +504,15 @@ function showLeaderboard(mode) {
     playerNameInput.value = "";
   }
 
+  if (useCachedHighScores() && !leaderboardState.loading && !leaderboardState.saving) {
+    leaderboardState.statusMessage = "Wyświetlam lokalną kopię tablicy wyników.";
+    leaderboardState.statusTone = "info";
+  } else if (!leaderboardState.loading && !leaderboardState.saving) {
+    leaderboardState.statusMessage = "";
+  }
+
+  renderPauseOverlay();
+  renderStartOverlay();
   renderLeaderboard();
   void refreshHighScores();
 
@@ -382,6 +525,7 @@ function showLeaderboard(mode) {
 
 function hideLeaderboard() {
   leaderboardState.mode = null;
+  renderStartOverlay();
   renderLeaderboard();
 }
 
@@ -394,18 +538,23 @@ async function saveCurrentScore() {
 
   leaderboardState.saving = true;
   leaderboardState.statusMessage = "";
+  highScores = saveCachedHighScores([entry, ...highScores]);
+  leaderboardState.showingCachedCopy = true;
   playerNameInput.value = entry.name;
   renderLeaderboard();
 
   try {
-    highScores = await persistHighScore(entry);
+    highScores = saveCachedHighScores(await persistHighScore(entry));
+    leaderboardState.showingCachedCopy = false;
     leaderboardState.scoreSaved = true;
-    leaderboardState.statusMessage = "Wynik zapisany w globalnej tablicy.";
+    leaderboardState.statusMessage = "";
     leaderboardState.statusTone = "info";
   } catch (error) {
     leaderboardState.statusMessage =
-      error instanceof Error ? error.message : "Nie udało się zapisać wyniku.";
-    leaderboardState.statusTone = "error";
+      error instanceof Error
+        ? `${error.message} Wynik pozostał w lokalnej kopii.`
+        : "Nie udało się zapisać wyniku w Google. Wynik pozostał w lokalnej kopii.";
+    leaderboardState.statusTone = "info";
   } finally {
     leaderboardState.saving = false;
     renderLeaderboard();
@@ -633,11 +782,13 @@ function launchBall() {
   ball.trail = [];
   game.running = true;
   game.message = "";
+  renderStartOverlay();
 }
 
 function resetRound() {
   fallingBonuses = [];
   projectiles = [];
+  game.paused = false;
   paddle.baseWidth = getBasePaddleWidth();
   syncPaddleWidth();
   paddle.x = (canvas.width - paddle.width) / 2;
@@ -648,8 +799,10 @@ function resetRound() {
   game.running = false;
   game.message =
     game.lives > 0
-      ? `Poziom ${game.level} - Naciśnij Spację, aby wystartować`
+      ? `Poziom ${game.level}`
       : "Koniec gry";
+  renderStartOverlay();
+  renderPauseOverlay();
 }
 
 function resetGame() {
@@ -739,6 +892,8 @@ function bounceOffPaddle() {
 }
 
 function bounceOffWalls() {
+  const topBoundary = getBrickTopOffset();
+
   if (ball.x + ball.radius >= canvas.width) {
     ball.x = canvas.width - ball.radius;
     ball.velocityX *= -1;
@@ -749,8 +904,8 @@ function bounceOffWalls() {
     ball.spin *= 0.92;
   }
 
-  if (ball.y - ball.radius <= 0) {
-    ball.y = ball.radius;
+  if (ball.y - ball.radius <= topBoundary) {
+    ball.y = topBoundary + ball.radius;
     ball.velocityY *= -1;
     ball.spin *= 0.96;
   }
@@ -782,7 +937,8 @@ function hitBrick(brick) {
     game.level += 1;
     createBricks();
     resetRound();
-    game.message = `Poziom ${game.level} - Naciśnij Spację, aby wystartować`;
+    game.message = `Poziom ${game.level}`;
+    renderStartOverlay();
     updateHud();
   }
 }
@@ -1190,7 +1346,7 @@ function drawBall() {
 
 function drawBonusIcon(type, centerX, centerY, size, isPositive) {
   const strokeColor = "#fffdf0";
-  const fillColor = isPositive ? "#f3ff76" : "#ffe08a";
+  const fillColor = isPositive ? "#d9ff7a" : "#ffb0b0";
   context.save();
   context.translate(centerX, centerY);
   context.lineCap = "round";
@@ -1310,10 +1466,10 @@ function drawFallingBonuses() {
     const pillY = bonus.y + hoverOffset - pillHeight / 2;
     const cornerRadius = pillHeight / 2;
     const pulse = 0.88 + (Math.sin(bonus.phase) + 1) * 0.12;
-    const highlightColor = isPositive ? "#fff3a0" : "#ffd66b";
-    const midColor = isPositive ? "#ffe100" : "#ffb000";
-    const baseColor = isPositive ? "#00ff66" : "#ff1f1f";
-    const shadowColor = isPositive ? "#067a2f" : "#8f0d0d";
+    const highlightColor = isPositive ? "#d9ff7a" : "#ffb0b0";
+    const midColor = isPositive ? "#45ff84" : "#ff5a5a";
+    const baseColor = isPositive ? "#00d84f" : "#ff2020";
+    const shadowColor = isPositive ? "#045f24" : "#7f0606";
     const fill = context.createLinearGradient(
       pillX,
       pillY,
@@ -1326,7 +1482,7 @@ function drawFallingBonuses() {
     fill.addColorStop(1, shadowColor);
 
     context.save();
-    context.shadowColor = isPositive ? "rgba(0, 255, 102, 0.72)" : "rgba(255, 31, 31, 0.72)";
+    context.shadowColor = isPositive ? "rgba(0, 216, 79, 0.82)" : "rgba(255, 32, 32, 0.82)";
     context.shadowBlur = 28 * pulse;
     context.shadowOffsetY = 4;
     context.translate(bonus.x, bonus.y + hoverOffset);
@@ -1341,7 +1497,7 @@ function drawFallingBonuses() {
     context.beginPath();
     context.roundRect(-pillWidth / 2, -pillHeight / 2, pillWidth, pillHeight, cornerRadius);
     context.lineWidth = 1.9;
-    context.strokeStyle = isPositive ? "rgba(255, 255, 230, 0.98)" : "rgba(255, 245, 220, 0.98)";
+    context.strokeStyle = isPositive ? "rgba(232, 255, 220, 0.98)" : "rgba(255, 228, 228, 0.98)";
     context.stroke();
 
     context.beginPath();
@@ -1356,7 +1512,7 @@ function drawFallingBonuses() {
     context.fill();
     context.restore();
 
-    context.shadowColor = isPositive ? "rgba(0, 96, 36, 0.78)" : "rgba(120, 0, 0, 0.78)";
+    context.shadowColor = isPositive ? "rgba(0, 110, 36, 0.82)" : "rgba(145, 0, 0, 0.82)";
     context.shadowBlur = 10;
     drawBonusIcon(bonus.type, bonus.x, bonus.y + hoverOffset, bonus.size * 0.9, isPositive);
     context.shadowBlur = 0;
@@ -1450,22 +1606,7 @@ function drawBricks() {
 }
 
 function drawMessage() {
-  if (!game.message || leaderboardState.mode) {
-    return;
-  }
-
-  const messageWidth = Math.min(canvas.width - 40, 560);
-
-  context.save();
-  context.fillStyle = "rgba(15, 23, 42, 0.72)";
-  context.fillRect(canvas.width / 2 - messageWidth / 2, canvas.height / 2 - 46, messageWidth, 92);
-  context.strokeStyle = "rgba(148, 163, 184, 0.28)";
-  context.strokeRect(canvas.width / 2 - messageWidth / 2, canvas.height / 2 - 46, messageWidth, 92);
-  context.fillStyle = "#e2e8f0";
-  context.font = "700 24px Arial";
-  context.textAlign = "center";
-  context.fillText(game.message, canvas.width / 2, canvas.height / 2 + 8);
-  context.restore();
+  return;
 }
 
 function draw() {
@@ -1479,7 +1620,7 @@ function draw() {
 }
 
 function handlePointerMove(event) {
-  if (leaderboardState.mode) {
+  if (leaderboardState.mode || game.paused) {
     return;
   }
 
@@ -1501,6 +1642,10 @@ function handlePointerMove(event) {
 
 function handleAction() {
   if (isTextEntryActive()) {
+    return;
+  }
+
+  if (game.paused) {
     return;
   }
 
@@ -1542,6 +1687,18 @@ window.addEventListener("keydown", (event) => {
     return;
   }
 
+  if (key === "p") {
+    if (!leaderboardState.mode && (game.running || game.paused)) {
+      event.preventDefault();
+      togglePause();
+    }
+    return;
+  }
+
+  if (game.paused) {
+    return;
+  }
+
   if (leaderboardState.mode && key !== " " && key !== "spacebar") {
     return;
   }
@@ -1560,6 +1717,12 @@ window.addEventListener("keyup", (event) => {
   const key = event.key.toLowerCase();
 
   if (isTextEntryActive()) {
+    return;
+  }
+
+  if (game.paused) {
+    controls.left = false;
+    controls.right = false;
     return;
   }
 
@@ -1601,18 +1764,28 @@ leaderboardStartButton.addEventListener("click", () => {
   startFromLeaderboard();
 });
 
+pauseResumeButton.addEventListener("click", () => {
+  resumeGame();
+});
+
+startOverlayButton.addEventListener("click", () => {
+  handleAction();
+});
+
 let lastTimestamp = performance.now();
 
 function animate(timestamp) {
   const deltaSeconds = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
 
-  movePaddle(deltaSeconds);
-  updateEffects(deltaSeconds);
-  updateFallingBonuses(deltaSeconds);
-  updateProjectiles(deltaSeconds);
+  if (!game.paused) {
+    movePaddle(deltaSeconds);
+    updateEffects(deltaSeconds);
+    updateFallingBonuses(deltaSeconds);
+    updateProjectiles(deltaSeconds);
+  }
 
-  if (game.running) {
+  if (game.running && !game.paused) {
     updateBall(deltaSeconds);
   }
 

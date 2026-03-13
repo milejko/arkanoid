@@ -49,16 +49,15 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.85rem;
-  padding: 0.48rem 1.6rem 0.6rem;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  background: rgba(8, 15, 30, 0.66);
-  box-shadow:
-    0 0 18px rgba(33, 212, 253, 0.2),
-    0 0 38px rgba(139, 92, 255, 0.2),
-    inset 0 0 18px rgba(255, 255, 255, 0.04);
+  padding: 0;
   width: max-content;
+  max-width: 100%;
+}
+
+.brand-logo {
+  display: block;
+  width: 132px;
+  height: auto;
   max-width: 100%;
 }
 
@@ -283,6 +282,10 @@ canvas {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+.pause-card {
+  width: min(92vw, 420px);
+}
+
 .leaderboard-kicker {
   margin: 0 0 0.35rem;
   font-size: 0.72rem;
@@ -304,8 +307,10 @@ canvas {
 }
 
 .leaderboard-status {
-  margin: -0.35rem 0 0.95rem;
+  margin: 0;
   font-size: 0.92rem;
+  min-height: 1.1rem;
+  flex: 1 1 auto;
 }
 
 .leaderboard-status-info {
@@ -314,6 +319,36 @@ canvas {
 
 .leaderboard-status-error {
   color: #fda4af;
+}
+
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.12rem;
+  min-height: 1em;
+}
+
+.loading-dot {
+  display: inline-block;
+  font-size: 1.35rem;
+  line-height: 1;
+  opacity: 0.2;
+  transform: translateY(0);
+  animation: loading-dot-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes loading-dot-pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
 }
 
 .leaderboard-form {
@@ -415,18 +450,15 @@ canvas {
 
 .leaderboard-actions {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   margin-top: 1rem;
 }
 
 @media (max-width: 720px) {
-  .brand-mark {
-    gap: 0.55rem;
-    padding: 0.5rem 1rem 0.62rem;
-  }
-
-  .brand-letter {
-    font-size: 1.34rem;
+  .brand-logo {
+    width: 112px;
   }
 
   .hud {
