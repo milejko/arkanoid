@@ -119,3 +119,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 113. `u dolu ucina`
 114. `teraz jest totalnie zle na safari`
 115. `na safari na komputerze jest ok, na iphone kanwa jest za wysoka (od dolu), i za szeroka`
+116. `zmiana liczenia wersji - numer z historii setki = major, dziesiatki = minor, jednosci = path`

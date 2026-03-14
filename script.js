@@ -21,6 +21,7 @@ const leaderboardStartButton = document.getElementById("leaderboardStartButton")
 const pauseResumeButton = document.getElementById("pauseResumeButton");
 const startOverlayButton = document.getElementById("startOverlayButton");
 const pauseToggleButton = document.getElementById("pauseToggleButton");
+const versionBadgeElement = document.getElementById("versionBadge");
 
 const controls = {
   left: false,
@@ -32,6 +33,18 @@ const LEADERBOARD_API_URL =
 const MAX_HIGH_SCORES = 10;
 const LEADERBOARD_CACHE_KEY = "sanoma-arkanoid-leaderboard-cache";
 const PADDLE_BOTTOM_OFFSET = 66;
+const HISTORY_ENTRY_NUMBER = 116;
+
+function formatVersionFromHistoryEntry(entryNumber) {
+  const major = Math.floor(entryNumber / 100);
+  const minor = Math.floor((entryNumber % 100) / 10);
+  const patch = entryNumber % 10;
+  return `${major}.${minor}.${patch}`;
+}
+
+if (versionBadgeElement) {
+  versionBadgeElement.textContent = formatVersionFromHistoryEntry(HISTORY_ENTRY_NUMBER);
+}
 
 const leaderboardState = {
   mode: null,
