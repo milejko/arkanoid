@@ -125,3 +125,7 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 119. `wyswietlamy (nawet na desktopie) tylko 10 wynikow, jesli nowy wynik jest gorszy niz w pierwszej 10tce, wyswietlamy tylko hi-score bez opcji wpisu`
 120. `2x bug: 1. kanwa jest odrobine za szeroka na iphone (ucina kafle z prawej) 2. nie dziala scroll hi-score na iphone`
 121. `2 usprawnienia - niech style.css i script.js beda dynamicznie zalezec od wersji (zeby uniknac stale cache)`
+122. `napisz prosze ladne readme w jezyku polskim co to za program, instrukcje gry itd.`
+123. `startowo paletka + 10% dlugosci`
+124. `dostosuj predkosc pilki zaleznie od "przerwy" miedzy paletka a dolnym rzedem kafli - im wieksza odleglosc tym szybsza pilka`
+125. `nie do konca o to chodzi - chodzi o to zeby na pionowych ekranach pilka byla szybsza niz na poziomych`

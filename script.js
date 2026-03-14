@@ -693,6 +693,7 @@ let projectiles = [];
 let lastPointerMoveTime = 0;
 
 function resizeCanvas() {
+  const previousBaseSpeed = getCurrentBallBaseSpeed();
   const { width, height } = canvas.getBoundingClientRect();
   canvas.width = Math.floor(width);
   canvas.height = Math.floor(height);
@@ -707,6 +708,7 @@ function resizeCanvas() {
   } else {
     ball.x = Math.min(Math.max(ball.x, ball.radius), canvas.width - ball.radius);
     ball.y = Math.min(Math.max(ball.y, ball.radius), canvas.height - ball.radius);
+    syncBallSpeedWithBaseSpeed(previousBaseSpeed);
   }
 }
 
@@ -781,12 +783,40 @@ function layoutBricks() {
 }
 
 function getBasePaddleWidth() {
-  return canvas.width * 0.126;
+  return canvas.width * 0.1386;
+}
+
+function getOrientationBasedBallSpeedFactor() {
+  if (canvas.width <= 0 || canvas.height <= 0) {
+    return 1;
+  }
+
+  const aspectRatio = canvas.height / canvas.width;
+  const normalizedRatio = Math.max(0.72, Math.min(1.85, aspectRatio));
+
+  return 0.9 + (normalizedRatio - 0.72) / (1.85 - 0.72) * 0.32;
 }
 
 function getCurrentBallBaseSpeed() {
   const levelSpeedFactor = 1 + (game.level - 1) * 0.1;
-  return ball.baseSpeed * levelSpeedFactor * (1 + effects.speedModifier);
+  return ball.baseSpeed * levelSpeedFactor * getOrientationBasedBallSpeedFactor() * (1 + effects.speedModifier);
+}
+
+function syncBallSpeedWithBaseSpeed(previousBaseSpeed) {
+  if (ball.attached || !Number.isFinite(previousBaseSpeed) || previousBaseSpeed <= 0) {
+    return;
+  }
+
+  const nextBaseSpeed = getCurrentBallBaseSpeed();
+
+  if (!Number.isFinite(nextBaseSpeed) || nextBaseSpeed <= 0) {
+    return;
+  }
+
+  const velocityRatio = nextBaseSpeed / previousBaseSpeed;
+  ball.velocityX *= velocityRatio;
+  ball.velocityY *= velocityRatio;
+  ball.spin *= velocityRatio;
 }
 
 function syncPaddleWidth() {
@@ -1000,6 +1030,7 @@ function hitBrick(brick) {
     return;
   }
 
+  const previousBaseSpeed = getCurrentBallBaseSpeed();
   brick.alive = false;
 
   if (brick.bonusType) {
@@ -1026,7 +1057,10 @@ function hitBrick(brick) {
     game.startOverlayMode = "levelStart";
     renderStartOverlay();
     updateHud();
+    return;
   }
+
+  syncBallSpeedWithBaseSpeed(previousBaseSpeed);
 }
 
 function bounceOffBricks(previousX, previousY) {
