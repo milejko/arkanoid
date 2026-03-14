@@ -132,3 +132,5 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 126. `do hiscore piktogram czy komorka czy komputer czy tablet - zgadywane na podstawie rozdzielczosci`
 127. `typ dajmy do ostatniej kolumny`
 128. `optymalizacja na mniejszych uzadzeniach - wolniejsza pilka, na iphone jest troche trudno`
+129. `poprosze + ciut dluzsza +10% paletka dla malych uzadzen`
+130. `ikona tabletu jest bardzo nieladna, popraw zeby byla podobna bardziej do tej od telefonu i kompa`

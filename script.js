@@ -218,16 +218,11 @@ function getDeviceTypeLabel(deviceType) {
   return "Komputer";
 }
 
-function getDeviceTypeIcon(deviceType) {
-  if (deviceType === "phone") {
-    return "📱";
-  }
-
-  if (deviceType === "tablet") {
-    return "▭";
-  }
-
-  return "💻";
+function createDeviceTypeIconElement(deviceType) {
+  const icon = document.createElement("span");
+  icon.className = `device-icon device-icon-${normalizeDeviceType(deviceType)}`;
+  icon.setAttribute("aria-hidden", "true");
+  return icon;
 }
 
 function sortHighScores(first, second) {
@@ -514,9 +509,9 @@ function renderHighScores() {
     const scoreCell = document.createElement("td");
 
     deviceCell.className = "leaderboard-table-device";
-    deviceCell.textContent = getDeviceTypeIcon(entry.deviceType);
     deviceCell.setAttribute("aria-label", getDeviceTypeLabel(entry.deviceType));
     deviceCell.title = getDeviceTypeLabel(entry.deviceType);
+    deviceCell.appendChild(createDeviceTypeIconElement(entry.deviceType));
     nameCell.textContent = entry.name;
     levelCell.textContent = String(entry.level);
     scoreCell.textContent = String(entry.score);
@@ -839,7 +834,16 @@ function layoutBricks() {
 }
 
 function getBasePaddleWidth() {
-  return canvas.width * 0.1386;
+  return canvas.width * 0.1386 * getSmallDevicePaddleFactor();
+}
+
+function getSmallDevicePaddleFactor() {
+  if (canvas.width <= 0 || canvas.height <= 0) {
+    return 1;
+  }
+
+  const shortestSide = Math.min(canvas.width, canvas.height);
+  return shortestSide <= 480 ? 1.1 : 1;
 }
 
 function getOrientationBasedBallSpeedFactor() {
@@ -861,7 +865,7 @@ function getSmallDeviceBallSpeedFactor() {
   const shortestSide = Math.min(canvas.width, canvas.height);
   const normalizedSide = Math.max(320, Math.min(960, shortestSide));
 
-  return 0.82 + (normalizedSide - 320) / (960 - 320) * 0.18;
+  return 0.76 + (normalizedSide - 320) / (960 - 320) * 0.24;
 }
 
 function getCurrentBallBaseSpeed() {

@@ -508,7 +508,86 @@ canvas {
 .leaderboard-table-device {
   width: 3rem;
   text-align: center !important;
-  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.device-icon {
+  position: relative;
+  display: inline-block;
+  color: #dbe7f5;
+}
+
+.device-icon-phone,
+.device-icon-tablet,
+.device-icon-computer {
+  border: 2px solid currentColor;
+  background: rgba(219, 231, 245, 0.06);
+}
+
+.device-icon-phone {
+  width: 0.68rem;
+  height: 1.06rem;
+  border-radius: 0.18rem;
+}
+
+.device-icon-phone::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0.08rem;
+  width: 0.12rem;
+  height: 0.12rem;
+  border-radius: 999px;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+.device-icon-tablet {
+  width: 0.9rem;
+  height: 1.08rem;
+  border-radius: 0.16rem;
+}
+
+.device-icon-tablet::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0.09rem;
+  width: 0.11rem;
+  height: 0.11rem;
+  border-radius: 999px;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+.device-icon-computer {
+  width: 0.98rem;
+  height: 0.7rem;
+  border-radius: 0.12rem;
+}
+
+.device-icon-computer::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -0.21rem;
+  width: 0.18rem;
+  height: 0.18rem;
+  border-radius: 0.05rem;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+.device-icon-computer::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -0.31rem;
+  width: 0.76rem;
+  height: 0.08rem;
+  border-radius: 999px;
+  background: currentColor;
+  transform: translateX(-50%);
 }
 
 .leaderboard-table thead {
