@@ -583,6 +583,8 @@ canvas {
     overflow-y: auto;
     border-radius: 14px;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
   }
 
   .leaderboard-actions {

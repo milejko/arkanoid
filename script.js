@@ -33,7 +33,7 @@ const LEADERBOARD_API_URL =
 const MAX_HIGH_SCORES = 10;
 const LEADERBOARD_CACHE_KEY = "sanoma-arkanoid-leaderboard-cache";
 const PADDLE_BOTTOM_OFFSET = 66;
-const HISTORY_ENTRY_NUMBER = 119;
+const HISTORY_ENTRY_NUMBER = 120;
 
 function formatVersionFromHistoryEntry(entryNumber) {
   const major = Math.floor(entryNumber / 100);
@@ -762,10 +762,7 @@ function layoutBricks() {
   const columns = getBrickColumns();
   const topOffset = getBrickTopOffset();
   const totalGapWidth = brickConfig.gap * (columns - 1);
-  const availableWidth = Math.max(
-    canvas.width - brickConfig.sidePadding * 2,
-    columns * 40 + totalGapWidth
-  );
+  const availableWidth = Math.max(0, canvas.width - brickConfig.sidePadding * 2);
   const brickWidth = (availableWidth - totalGapWidth) / columns;
   const startX = brickConfig.sidePadding;
 
@@ -1915,6 +1912,10 @@ window.addEventListener("mousemove", handlePointerMove);
 window.addEventListener(
   "touchmove",
   (event) => {
+    if (leaderboardState.mode || game.paused) {
+      return;
+    }
+
     event.preventDefault();
     handlePointerMove(event);
   },

@@ -123,3 +123,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 117. `blenda z tablica wynikow, pauza, start poziomu i kontynuacja nie jest wycentrowana w pionie - jest troche za nisko, prawdopodobnie o wysokosc logo/hud`
 118. `na mniejszych ekranach hiscore ze scrollem - widoczne 5 pierwszych pozycji`
 119. `wyswietlamy (nawet na desktopie) tylko 10 wynikow, jesli nowy wynik jest gorszy niz w pierwszej 10tce, wyswietlamy tylko hi-score bez opcji wpisu`
+120. `2x bug: 1. kanwa jest odrobine za szeroka na iphone (ucina kafle z prawej) 2. nie dziala scroll hi-score na iphone`
