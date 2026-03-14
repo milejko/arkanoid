@@ -853,9 +853,26 @@ function getOrientationBasedBallSpeedFactor() {
   return 0.9 + (normalizedRatio - 0.72) / (1.85 - 0.72) * 0.32;
 }
 
+function getSmallDeviceBallSpeedFactor() {
+  if (canvas.width <= 0 || canvas.height <= 0) {
+    return 1;
+  }
+
+  const shortestSide = Math.min(canvas.width, canvas.height);
+  const normalizedSide = Math.max(320, Math.min(960, shortestSide));
+
+  return 0.82 + (normalizedSide - 320) / (960 - 320) * 0.18;
+}
+
 function getCurrentBallBaseSpeed() {
   const levelSpeedFactor = 1 + (game.level - 1) * 0.1;
-  return ball.baseSpeed * levelSpeedFactor * getOrientationBasedBallSpeedFactor() * (1 + effects.speedModifier);
+  return (
+    ball.baseSpeed *
+    levelSpeedFactor *
+    getOrientationBasedBallSpeedFactor() *
+    getSmallDeviceBallSpeedFactor() *
+    (1 + effects.speedModifier)
+  );
 }
 
 function syncBallSpeedWithBaseSpeed(previousBaseSpeed) {

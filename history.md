@@ -131,3 +131,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 125. `nie do konca o to chodzi - chodzi o to zeby na pionowych ekranach pilka byla szybsza niz na poziomych`
 126. `do hiscore piktogram czy komorka czy komputer czy tablet - zgadywane na podstawie rozdzielczosci`
 127. `typ dajmy do ostatniej kolumny`
+128. `optymalizacja na mniejszych uzadzeniach - wolniejsza pilka, na iphone jest troche trudno`
