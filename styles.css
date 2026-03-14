@@ -322,7 +322,10 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6.5rem 1rem 1.5rem;
+  padding:
+    max(1.5rem, env(safe-area-inset-top))
+    1rem
+    max(1.5rem, env(safe-area-inset-bottom));
   background: rgba(2, 6, 23, 0.48);
   backdrop-filter: blur(8px);
 }
@@ -484,6 +487,10 @@ canvas {
   color: #cbd5e1;
 }
 
+.leaderboard-table-scroll {
+  width: 100%;
+}
+
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
@@ -563,16 +570,19 @@ canvas {
     font-size: 1.22rem;
   }
 
-  .leaderboard-overlay {
-    padding-top: 7.2rem;
-  }
-
   .version-badge {
     font-size: 0.72rem;
   }
 
   .leaderboard-form-row {
     flex-direction: column;
+  }
+
+  .leaderboard-table-scroll {
+    max-height: calc(2.22rem + 5 * 3.04rem);
+    overflow-y: auto;
+    border-radius: 14px;
+    -webkit-overflow-scrolling: touch;
   }
 
   .leaderboard-actions {

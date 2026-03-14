@@ -72,16 +72,18 @@
 
         <p class="leaderboard-empty hidden" id="leaderboardEmpty"></p>
 
-        <table class="leaderboard-table" aria-label="Tablica wyników">
-          <thead>
-            <tr>
-              <th>Imię</th>
-              <th>Level</th>
-              <th>Punkty</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboardBody"></tbody>
-        </table>
+        <div class="leaderboard-table-scroll">
+          <table class="leaderboard-table" aria-label="Tablica wyników">
+            <thead>
+              <tr>
+                <th>Imię</th>
+                <th>Level</th>
+                <th>Punkty</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+          </table>
+        </div>
 
         <div class="leaderboard-actions">
           <p class="leaderboard-status hidden" id="leaderboardStatus" aria-live="polite"></p>

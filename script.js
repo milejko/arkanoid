@@ -33,7 +33,7 @@ const LEADERBOARD_API_URL =
 const MAX_HIGH_SCORES = 10;
 const LEADERBOARD_CACHE_KEY = "sanoma-arkanoid-leaderboard-cache";
 const PADDLE_BOTTOM_OFFSET = 66;
-const HISTORY_ENTRY_NUMBER = 116;
+const HISTORY_ENTRY_NUMBER = 119;
 
 function formatVersionFromHistoryEntry(entryNumber) {
   const major = Math.floor(entryNumber / 100);
@@ -208,6 +208,26 @@ function normalizeHighScoreEntries(entries) {
     .filter(Boolean)
     .sort(sortHighScores)
     .slice(0, MAX_HIGH_SCORES);
+}
+
+function doesHighScoreQualify(entry, entries = highScores) {
+  const normalizedEntry = normalizeHighScoreEntry(entry);
+
+  if (!normalizedEntry) {
+    return false;
+  }
+
+  const normalizedEntries = normalizeHighScoreEntries(entries);
+
+  if (normalizedEntries.length < MAX_HIGH_SCORES) {
+    return true;
+  }
+
+  const cutoffEntry = normalizedEntries[normalizedEntries.length - 1];
+  return (
+    normalizedEntry.score > cutoffEntry.score ||
+    (normalizedEntry.score === cutoffEntry.score && normalizedEntry.level >= cutoffEntry.level)
+  );
 }
 
 function loadCachedHighScores() {
@@ -447,7 +467,12 @@ function renderHighScores() {
 function renderLeaderboard() {
   const isIntro = leaderboardState.mode === "intro";
   const isGameOver = leaderboardState.mode === "gameover";
-  const shouldShowForm = isGameOver && !leaderboardState.scoreSaved;
+  const currentScoreQualifies = doesHighScoreQualify({
+    name: playerNameInput.value,
+    level: game.level,
+    score: game.score,
+  });
+  const shouldShowForm = isGameOver && !leaderboardState.scoreSaved && currentScoreQualifies;
 
   leaderboardOverlay.classList.toggle("hidden", !leaderboardState.mode);
 
@@ -459,7 +484,9 @@ function renderLeaderboard() {
   leaderboardSubtitleElement.textContent = isGameOver
     ? shouldShowForm
       ? `Wpisz imię i zapisz wynik: level ${game.level}, ${game.score} pkt.`
-      : `Wynik zapisany. Level ${game.level}, ${game.score} pkt.`
+      : leaderboardState.scoreSaved
+        ? `Wynik zapisany. Level ${game.level}, ${game.score} pkt.`
+        : `Poza top ${MAX_HIGH_SCORES}. Level ${game.level}, ${game.score} pkt.`
     : "";
   leaderboardStartButton.textContent = isIntro ? "Start" : "Nowa gra";
   scoreFormElement.classList.toggle("hidden", !shouldShowForm);
@@ -550,7 +577,11 @@ function showLeaderboard(mode) {
   renderLeaderboard();
   void refreshHighScores();
 
-  if (mode === "gameover" && !leaderboardState.scoreSaved) {
+  if (
+    mode === "gameover" &&
+    !leaderboardState.scoreSaved &&
+    doesHighScoreQualify({ name: playerNameInput.value, level: game.level, score: game.score })
+  ) {
     playerNameInput.focus();
   } else {
     leaderboardStartButton.focus();
@@ -569,6 +600,10 @@ async function saveCurrentScore() {
     level: game.level,
     score: game.score,
   });
+
+  if (!entry || !doesHighScoreQualify(entry) || leaderboardState.scoreSaved) {
+    return;
+  }
 
   leaderboardState.saving = true;
   leaderboardState.statusMessage = "";

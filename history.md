@@ -120,3 +120,6 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 114. `teraz jest totalnie zle na safari`
 115. `na safari na komputerze jest ok, na iphone kanwa jest za wysoka (od dolu), i za szeroka`
 116. `zmiana liczenia wersji - numer z historii setki = major, dziesiatki = minor, jednosci = path`
+117. `blenda z tablica wynikow, pauza, start poziomu i kontynuacja nie jest wycentrowana w pionie - jest troche za nisko, prawdopodobnie o wysokosc logo/hud`
+118. `na mniejszych ekranach hiscore ze scrollem - widoczne 5 pierwszych pozycji`
+119. `wyswietlamy (nawet na desktopie) tylko 10 wynikow, jesli nowy wynik jest gorszy niz w pierwszej 10tce, wyswietlamy tylko hi-score bez opcji wpisu`
