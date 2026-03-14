@@ -19,6 +19,7 @@ Projekt powstał jako statyczna aplikacja front-endowa:
 - stały układ planszy `5 x 8`,
 - przechodzenie między poziomami,
 - wzrost bazowej prędkości piłki o 10% na każdy kolejny poziom,
+- betonowe cegły wymagające 2 trafień na wyższych poziomach,
 - system bonusów pozytywnych i negatywnych,
 - pauza uruchamiana klawiszem `P` lub kliknięciem logo,
 - tablica wyników z limitem **top 10**,
@@ -34,6 +35,7 @@ Cel jest prosty: odbijaj piłkę, niszcz cegły i nie pozwól jej spaść pod pa
 - Startujesz z **3 życiami**.
 - Po zbiciu wszystkich cegieł przechodzisz na następny poziom.
 - Każdy kolejny poziom zwiększa bazową prędkość piłki.
+- Od poziomu 2 pojawiają się **betonowe cegły**. Każdy kolejny poziom dodaje jedną taką cegłę więcej.
 - Po utracie życia aktywne bonusy znikają.
 - Po zakończeniu gry możesz zapisać wynik, ale tylko wtedy, gdy trafia do **pierwszej dziesiątki**.
 
@@ -56,6 +58,8 @@ Cel jest prosty: odbijaj piłkę, niszcz cegły i nie pozwól jej spaść pod pa
 ## Bonusy
 
 Bonusy są ukryte w wybranych cegłach i wypadają dopiero po ich zniszczeniu. W grze występują zarówno bonusy pozytywne, jak i negatywne.
+
+Na wyższych poziomach część zwykłych cegieł zastępowana jest także **betonowymi kaflami**. Wyglądają jak szare, trójwymiarowe bloki z fakturą betonu i wymagają dwóch trafień, zanim znikną.
 
 ### Pozytywne
 

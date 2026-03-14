@@ -134,3 +134,5 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 128. `optymalizacja na mniejszych uzadzeniach - wolniejsza pilka, na iphone jest troche trudno`
 129. `poprosze + ciut dluzsza +10% paletka dla malych uzadzen`
 130. `ikona tabletu jest bardzo nieladna, popraw zeby byla podobna bardziej do tej od telefonu i kompa`
+131. `wprowadzamy nowa mechanike - betonowy kafelek - trzeba go uderzyc 2x zeby go zbic - ilosc proporcjonalna do poziomu, 1 level = 0 betonowych, 2 level = 1 betonowy itd., wazne - bonusy musza zostac, wiec dla wyzszych leveli nadal musi zostac miejsce na "zlote" kafle bonusowe. Wyglad betonowego - taki jak pozostale - 3d, ale szary z kropeczkami (jak beton)`
+132. `widze beton po uderzeniu robi sie jasniejszy, powinien robic sie popekany`

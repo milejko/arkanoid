@@ -743,6 +743,10 @@ let fallingBonuses = [];
 let projectiles = [];
 let lastPointerMoveTime = 0;
 
+function getConcreteBrickCount(totalBricks, reservedBonusCount) {
+  return Math.max(0, Math.min(game.level - 1, totalBricks - reservedBonusCount));
+}
+
 function resizeCanvas() {
   const previousBaseSpeed = getCurrentBallBaseSpeed();
   const { width, height } = canvas.getBoundingClientRect();
@@ -789,6 +793,9 @@ function createBricks() {
         y: 0,
         width: 0,
         height: brickConfig.height,
+        material: "standard",
+        hitPoints: 1,
+        maxHitPoints: 1,
         bonusType: null,
       });
     }
@@ -805,10 +812,18 @@ function createBricks() {
   }
 
   const bonusCount = Math.max(1, Math.round(bricks.length * 0.18));
+  const concreteCount = getConcreteBrickCount(bricks.length, bonusCount);
 
   for (let index = 0; index < bonusCount; index += 1) {
     bricks[shuffledIndices[index]].bonusType =
       standardBonusTypes[Math.floor(Math.random() * standardBonusTypes.length)];
+  }
+
+  for (let index = bonusCount; index < bonusCount + concreteCount; index += 1) {
+    const concreteBrick = bricks[shuffledIndices[index]];
+    concreteBrick.material = "concrete";
+    concreteBrick.hitPoints = 2;
+    concreteBrick.maxHitPoints = 2;
   }
 
   layoutBricks();
@@ -1108,6 +1123,12 @@ function hitBrick(brick) {
   }
 
   const previousBaseSpeed = getCurrentBallBaseSpeed();
+  brick.hitPoints = Math.max(0, (brick.hitPoints || 1) - 1);
+
+  if (brick.hitPoints > 0) {
+    return;
+  }
+
   brick.alive = false;
 
   if (brick.bonusType) {
@@ -1831,19 +1852,42 @@ function drawBricks() {
     }
 
     const isBonusBrick = Boolean(brick.bonusType);
-    const baseColor = isBonusBrick ? "#facc15" : rowColors[brick.row % rowColors.length];
+    const isConcreteBrick = brick.material === "concrete";
+    const baseColor = isBonusBrick
+      ? "#facc15"
+      : isConcreteBrick
+        ? "#6b7280"
+        : rowColors[brick.row % rowColors.length];
     const face = context.createLinearGradient(
       brick.x,
       brick.y,
       brick.x,
       brick.y + brick.height
     );
-    face.addColorStop(0, isBonusBrick ? "rgba(255, 248, 196, 0.55)" : "rgba(255, 255, 255, 0.34)");
+    face.addColorStop(
+      0,
+      isBonusBrick
+        ? "rgba(255, 248, 196, 0.55)"
+        : isConcreteBrick
+          ? "rgba(255, 255, 255, 0.28)"
+          : "rgba(255, 255, 255, 0.34)"
+    );
     face.addColorStop(0.15, baseColor);
     face.addColorStop(0.72, baseColor);
-    face.addColorStop(1, isBonusBrick ? "rgba(120, 84, 10, 0.32)" : "rgba(10, 14, 28, 0.32)");
+    face.addColorStop(
+      1,
+      isBonusBrick
+        ? "rgba(120, 84, 10, 0.32)"
+        : isConcreteBrick
+          ? "rgba(31, 41, 55, 0.38)"
+          : "rgba(10, 14, 28, 0.32)"
+    );
 
-    context.shadowColor = isBonusBrick ? "rgba(250, 204, 21, 0.48)" : `${baseColor}66`;
+    context.shadowColor = isBonusBrick
+      ? "rgba(250, 204, 21, 0.48)"
+      : isConcreteBrick
+        ? "rgba(107, 114, 128, 0.42)"
+        : `${baseColor}66`;
     context.shadowBlur = 14;
     context.shadowOffsetY = 4;
     context.fillStyle = face;
@@ -1851,11 +1895,19 @@ function drawBricks() {
     context.shadowBlur = 0;
     context.shadowOffsetY = 0;
 
-    context.fillStyle = isBonusBrick ? "rgba(255, 252, 230, 0.62)" : "rgba(255, 255, 255, 0.45)";
+    context.fillStyle = isBonusBrick
+      ? "rgba(255, 252, 230, 0.62)"
+      : isConcreteBrick
+        ? "rgba(255, 255, 255, 0.32)"
+        : "rgba(255, 255, 255, 0.45)";
     context.fillRect(brick.x + bevel, brick.y + bevel, brick.width - bevel * 2, 2);
     context.fillRect(brick.x + bevel, brick.y + bevel, 2, brick.height - bevel * 2);
 
-    context.fillStyle = isBonusBrick ? "rgba(120, 84, 10, 0.28)" : "rgba(3, 7, 18, 0.3)";
+    context.fillStyle = isBonusBrick
+      ? "rgba(120, 84, 10, 0.28)"
+      : isConcreteBrick
+        ? "rgba(31, 41, 55, 0.34)"
+        : "rgba(3, 7, 18, 0.3)";
     context.fillRect(
       brick.x + bevel,
       brick.y + brick.height - bevel - 2,
@@ -1875,9 +1927,30 @@ function drawBricks() {
       brick.x + brick.width - bevel,
       brick.y + brick.height - bevel
     );
-    inset.addColorStop(0, isBonusBrick ? "rgba(255, 250, 205, 0.34)" : "rgba(255, 255, 255, 0.26)");
-    inset.addColorStop(0.4, isBonusBrick ? "rgba(255, 245, 157, 0.18)" : "rgba(255, 255, 255, 0.1)");
-    inset.addColorStop(1, isBonusBrick ? "rgba(120, 84, 10, 0.14)" : "rgba(4, 10, 24, 0.16)");
+    inset.addColorStop(
+      0,
+      isBonusBrick
+        ? "rgba(255, 250, 205, 0.34)"
+        : isConcreteBrick
+          ? "rgba(255, 255, 255, 0.14)"
+          : "rgba(255, 255, 255, 0.26)"
+    );
+    inset.addColorStop(
+      0.4,
+      isBonusBrick
+        ? "rgba(255, 245, 157, 0.18)"
+        : isConcreteBrick
+          ? "rgba(255, 255, 255, 0.05)"
+          : "rgba(255, 255, 255, 0.1)"
+    );
+    inset.addColorStop(
+      1,
+      isBonusBrick
+        ? "rgba(120, 84, 10, 0.14)"
+        : isConcreteBrick
+          ? "rgba(15, 23, 42, 0.18)"
+          : "rgba(4, 10, 24, 0.16)"
+    );
     context.fillStyle = inset;
     context.fillRect(
       brick.x + bevel,
@@ -1886,7 +1959,59 @@ function drawBricks() {
       brick.height - bevel * 2
     );
 
-    context.strokeStyle = isBonusBrick ? "rgba(255, 244, 180, 0.38)" : "rgba(255, 255, 255, 0.2)";
+    if (isConcreteBrick) {
+      const dotPattern = [
+        [0.22, 0.34, 1.6],
+        [0.41, 0.62, 1.35],
+        [0.61, 0.29, 1.1],
+        [0.74, 0.56, 1.55],
+        [0.84, 0.4, 0.95],
+      ];
+
+      for (const [offsetX, offsetY, radius] of dotPattern) {
+        context.beginPath();
+        context.fillStyle =
+          brick.hitPoints === 1 ? "rgba(229, 231, 235, 0.22)" : "rgba(229, 231, 235, 0.3)";
+        context.arc(
+          brick.x + brick.width * offsetX,
+          brick.y + brick.height * offsetY,
+          radius,
+          0,
+          Math.PI * 2
+        );
+        context.fill();
+      }
+
+      if (brick.hitPoints === 1) {
+        const crackLines = [
+          [0.18, 0.22, 0.47, 0.52, 0.66, 0.34, 0.82, 0.71],
+          [0.31, 0.14, 0.37, 0.36, 0.27, 0.66, 0.41, 0.86],
+          [0.61, 0.18, 0.56, 0.44, 0.73, 0.58, 0.64, 0.85],
+        ];
+
+        context.strokeStyle = "rgba(241, 245, 249, 0.45)";
+        context.lineWidth = 1.2;
+        context.lineCap = "round";
+        context.lineJoin = "round";
+
+        for (const line of crackLines) {
+          context.beginPath();
+          context.moveTo(brick.x + brick.width * line[0], brick.y + brick.height * line[1]);
+
+          for (let index = 2; index < line.length; index += 2) {
+            context.lineTo(brick.x + brick.width * line[index], brick.y + brick.height * line[index + 1]);
+          }
+
+          context.stroke();
+        }
+      }
+    }
+
+    context.strokeStyle = isBonusBrick
+      ? "rgba(255, 244, 180, 0.38)"
+      : isConcreteBrick
+        ? "rgba(229, 231, 235, 0.18)"
+        : "rgba(255, 255, 255, 0.2)";
     context.strokeRect(brick.x, brick.y, brick.width, brick.height);
   }
 }
