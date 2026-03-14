@@ -78,6 +78,7 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: nowrap;
   gap: 1.5rem;
   pointer-events: auto;
 }
@@ -250,7 +251,8 @@ canvas {
   justify-content: center;
   gap: 1rem;
   pointer-events: none;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   max-width: 100%;
   margin-left: auto;
 }
@@ -509,27 +511,42 @@ canvas {
 
 @media (max-width: 720px) {
   .brand-logo {
-    width: 112px;
+    width: 102px;
   }
 
   .top-chrome {
-    width: calc(100vw - 2rem);
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .brand-banner {
-    align-self: flex-start;
+    gap: 0.9rem;
   }
 
   .hud {
-    align-self: flex-end;
-    max-width: 100%;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+
+  .panel {
     width: auto;
+    padding: 0.62rem 0.78rem;
+  }
+
+  .stats {
+    gap: 0.7rem;
+    justify-content: flex-end;
+  }
+
+  .stat {
+    min-width: 4.1rem;
+  }
+
+  .label {
+    font-size: 0.64rem;
+  }
+
+  .value {
+    font-size: 1.22rem;
   }
 
   .leaderboard-overlay {
-    padding-top: 8.5rem;
+    padding-top: 7.2rem;
   }
 
   .version-badge {
@@ -554,5 +571,71 @@ canvas {
 
   .leaderboard-status-text {
     text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .top-chrome {
+    gap: 0.7rem;
+  }
+
+  .brand-logo {
+    width: 88px;
+  }
+
+  .panel {
+    padding: 0.48rem 0.62rem;
+    border-radius: 12px;
+  }
+
+  .stats {
+    gap: 0.5rem;
+  }
+
+  .stat {
+    min-width: 3.2rem;
+  }
+
+  .label {
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+  }
+
+  .value {
+    font-size: 1.02rem;
+  }
+
+  .value-lives {
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (max-width: 400px) {
+  .top-chrome {
+    gap: 0.55rem;
+  }
+
+  .brand-logo {
+    width: 74px;
+  }
+
+  .panel {
+    padding: 0.4rem 0.5rem;
+  }
+
+  .stats {
+    gap: 0.38rem;
+  }
+
+  .stat {
+    min-width: 2.75rem;
+  }
+
+  .label {
+    font-size: 0.5rem;
+  }
+
+  .value {
+    font-size: 0.92rem;
   }
 }
