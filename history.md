@@ -113,3 +113,8 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 107. `to moze przycisk`
 108. `fatalnie HUD jest teraz na srodku, wolalbym do prawej a przycisk wysokosci huda na lewo od niego`
 109. `to moze zamiast przycisku klikalne logo jako pauza i na mobile i normalnie`
+110. `logo i hudu MUSZA zawsze byc obok siebie - moze media query zeby na mniejszym ekranie byly mniejsze?`
+111. `obcina teraz na iphone paletke - wychodzi poza ekran - kanwa musi byc mniejsza`
+112. `wysokosc kanwy`
+113. `u dolu ucina`
+114. `teraz jest totalnie zle na safari`
