@@ -70,9 +70,12 @@ const audioState = {
   context: null,
   masterGain: null,
   unlockPromise: null,
+  mediaUnlockPromise: null,
   primed: false,
   enabled: typeof window.AudioContext === "function" || typeof window.webkitAudioContext === "function",
   lastPlayedAt: {},
+  silentUnlockElement: null,
+  silentUnlockUrl: null,
 };
 
 const leaderboardState = {
@@ -133,10 +136,125 @@ function getAudioContextClass() {
   return window.AudioContext || window.webkitAudioContext || null;
 }
 
+function writeAsciiToDataView(dataView, offset, value) {
+  for (let index = 0; index < value.length; index += 1) {
+    dataView.setUint8(offset + index, value.charCodeAt(index));
+  }
+}
+
+function setPlaybackAudioSession() {
+  if (!("audioSession" in navigator) || !navigator.audioSession) {
+    return;
+  }
+
+  try {
+    if (navigator.audioSession.type !== "playback") {
+      navigator.audioSession.type = "playback";
+    }
+  } catch (error) {
+    console.warn("Nie udalo sie ustawic trybu playback dla audio session.", error);
+  }
+}
+
+function getSilentUnlockAudioElement() {
+  if (audioState.silentUnlockElement) {
+    return audioState.silentUnlockElement;
+  }
+
+  const sampleRate = 8000;
+  const sampleCount = 800;
+  const headerSize = 44;
+  const samples = new Uint8Array(sampleCount);
+  samples.fill(128);
+
+  const buffer = new ArrayBuffer(headerSize + sampleCount);
+  const dataView = new DataView(buffer);
+  writeAsciiToDataView(dataView, 0, "RIFF");
+  dataView.setUint32(4, 36 + sampleCount, true);
+  writeAsciiToDataView(dataView, 8, "WAVE");
+  writeAsciiToDataView(dataView, 12, "fmt ");
+  dataView.setUint32(16, 16, true);
+  dataView.setUint16(20, 1, true);
+  dataView.setUint16(22, 1, true);
+  dataView.setUint32(24, sampleRate, true);
+  dataView.setUint32(28, sampleRate, true);
+  dataView.setUint16(32, 1, true);
+  dataView.setUint16(34, 8, true);
+  writeAsciiToDataView(dataView, 36, "data");
+  dataView.setUint32(40, sampleCount, true);
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    dataView.setUint8(headerSize + index, samples[index]);
+  }
+
+  const audioElement = document.createElement("audio");
+  const objectUrl = URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
+  audioElement.src = objectUrl;
+  audioElement.preload = "auto";
+  audioElement.volume = 0.001;
+  audioElement.muted = false;
+  audioElement.playsInline = true;
+  audioElement.setAttribute("playsinline", "");
+  audioElement.setAttribute("webkit-playsinline", "");
+
+  audioState.silentUnlockElement = audioElement;
+  audioState.silentUnlockUrl = objectUrl;
+  return audioElement;
+}
+
+function unlockMediaAudio() {
+  setPlaybackAudioSession();
+
+  const audioElement = getSilentUnlockAudioElement();
+
+  if (!audioElement) {
+    return Promise.resolve(false);
+  }
+
+  if (!audioState.mediaUnlockPromise) {
+    try {
+      audioElement.currentTime = 0;
+    } catch (_error) {
+      // Ignore currentTime reset issues on partially loaded audio elements.
+    }
+
+    const playResult = audioElement.play();
+
+    if (playResult && typeof playResult.then === "function") {
+      audioState.mediaUnlockPromise = playResult
+        .then(() => {
+          audioElement.pause();
+          try {
+            audioElement.currentTime = 0;
+          } catch (_error) {
+            // Ignore currentTime reset issues after playback.
+          }
+          return true;
+        })
+        .catch((error) => {
+          console.warn("Nie udalo sie odblokowac media audio na iPhonie.", error);
+          return false;
+        })
+        .finally(() => {
+          audioState.mediaUnlockPromise = null;
+        });
+    } else {
+      audioElement.pause();
+      audioState.mediaUnlockPromise = Promise.resolve(true).finally(() => {
+        audioState.mediaUnlockPromise = null;
+      });
+    }
+  }
+
+  return audioState.mediaUnlockPromise;
+}
+
 function ensureAudioContext() {
   if (!audioState.enabled) {
     return null;
   }
+
+  setPlaybackAudioSession();
 
   if (!audioState.context) {
     const AudioContextClass = getAudioContextClass();
@@ -186,19 +304,22 @@ function primeAudioContext(audioContext) {
 
 function unlockAudio() {
   const audioContext = ensureAudioContext();
+  const mediaUnlock = unlockMediaAudio();
 
   if (!audioContext) {
-    return Promise.resolve(null);
+    return mediaUnlock.then(() => null);
   }
 
   if (audioContext.state === "running") {
     primeAudioContext(audioContext);
-    return Promise.resolve(audioContext);
+    return mediaUnlock.then(() => audioContext);
   }
 
   if (!audioState.unlockPromise) {
-    audioState.unlockPromise = audioContext
-      .resume()
+    audioState.unlockPromise = Promise.all([
+      mediaUnlock,
+      audioContext.resume(),
+    ])
       .then(() => {
         primeAudioContext(audioContext);
         return audioContext;
