@@ -336,24 +336,26 @@ function getCanvasMetrics() {
   const chromeBottom = topChromeElement
     ? Math.ceil(topChromeElement.getBoundingClientRect().bottom)
     : getCssPixelValue("--chrome-top-gap");
-  const top = chromeBottom + CANVAS_EDGE_MARGIN;
+  const minTop = chromeBottom + CANVAS_EDGE_MARGIN;
+  const maxBottom = window.innerHeight - bottomInset - CANVAS_EDGE_MARGIN;
   const availableWidth = Math.max(
     0,
     window.innerWidth - leftInset - rightInset - CANVAS_EDGE_MARGIN * 2
   );
   const availableHeight = Math.max(
     0,
-    window.innerHeight - top - bottomInset - CANVAS_EDGE_MARGIN
+    maxBottom - minTop
   );
   const side = Math.floor(Math.max(0, Math.min(availableWidth, availableHeight)));
   const left = Math.round(
     leftInset + CANVAS_EDGE_MARGIN + Math.max(0, (availableWidth - side) / 2)
   );
+  const top = Math.round(minTop + Math.max(0, (availableHeight - side) / 2));
 
   return {
     side,
     left,
-    top: Math.round(top),
+    top,
   };
 }
 
@@ -1109,7 +1111,7 @@ function resizeCanvas() {
   paddle.y = getPaddleY();
   paddle.baseWidth = getBasePaddleWidth();
   ball.radius = getBallRadius();
-  ball.baseSpeed = getTileHeight() * 12.5;
+  ball.baseSpeed = getTileHeight() * 13.75;
   syncPaddleWidth();
   paddle.velocityX = 0;
 
@@ -1274,7 +1276,7 @@ function getBonusSize() {
 }
 
 function getBonusFallSpeed() {
-  return getTileHeight() * 11;
+  return Math.max(getTileHeight() * 8, getCurrentBallBaseSpeed() * 0.9);
 }
 
 function getProjectileWidth() {
@@ -1827,6 +1829,7 @@ function updateEffects(deltaSeconds) {
 function updateFallingBonuses(deltaSeconds) {
   for (let index = fallingBonuses.length - 1; index >= 0; index -= 1) {
     const bonus = fallingBonuses[index];
+    bonus.speed = getBonusFallSpeed();
     bonus.y += bonus.speed * deltaSeconds;
     bonus.phase += deltaSeconds * 4.5;
 
@@ -2814,6 +2817,36 @@ function handleAction() {
   }
 }
 
+function isElementWithinActionExclusionZone(target) {
+  return (
+    target instanceof Element &&
+    Boolean(
+      target.closest(
+        ".top-chrome, .leaderboard-overlay, .leaderboard-card, .leaderboard-button, .leaderboard-input, .leaderboard-table-scroll"
+      )
+    )
+  );
+}
+
+function handleBelowCanvasAction(event) {
+  if (event.defaultPrevented) {
+    return;
+  }
+
+  if (isElementWithinActionExclusionZone(event.target)) {
+    return;
+  }
+
+  const canvasRect = canvas.getBoundingClientRect();
+  const pointerY = typeof event.clientY === "number" ? event.clientY : NaN;
+
+  if (!Number.isFinite(pointerY) || pointerY <= canvasRect.bottom) {
+    return;
+  }
+
+  handleAction();
+}
+
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
 
@@ -2887,6 +2920,7 @@ window.addEventListener(
   { passive: false }
 );
 canvas.addEventListener("click", handleAction);
+window.addEventListener("click", handleBelowCanvasAction);
 window.addEventListener("resize", resizeCanvas);
 
 playerNameInput.addEventListener("input", () => {

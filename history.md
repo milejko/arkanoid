@@ -162,3 +162,6 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 156. `fix: po utracie zycia wszystkie bonusy negatywne znikaja`
 157. `kanwa zawsze kwadratowa; siatka 8x26, kafle bez marginesow, 5 rzedow kafli od rzedu 2, startowa paletka ma szerokosc 1 kafla i wysokosc pol kafla`
 158. `czyscimy mechanike predkosci - bazowa predkosc pilki ok. 50% nizsza, na mniejszych ekranach jeszcze mniejsza, a przyrost na poziom wynosi 5%`
+159. `2x fix: kanwa wycentrowana takze w pionie w dostepnej przestrzeni, a tap/click pod kanwa na iPhonie tez uruchamia akcje/strzal`
+160. `bazowa predkosc pilki +10%`
+161. `predkosc spadania bonusow skorelowana z predkoscia pilki`
