@@ -136,3 +136,24 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 130. `ikona tabletu jest bardzo nieladna, popraw zeby byla podobna bardziej do tej od telefonu i kompa`
 131. `wprowadzamy nowa mechanike - betonowy kafelek - trzeba go uderzyc 2x zeby go zbic - ilosc proporcjonalna do poziomu, 1 level = 0 betonowych, 2 level = 1 betonowy itd., wazne - bonusy musza zostac, wiec dla wyzszych leveli nadal musi zostac miejsce na "zlote" kafle bonusowe. Wyglad betonowego - taki jak pozostale - 3d, ale szary z kropeczkami (jak beton)`
 132. `widze beton po uderzeniu robi sie jasniejszy, powinien robic sie popekany`
+133. `kilka zmian w mechanice: 1. bonus dodatkowego zycia i "bomba" sa losowo tylko w betonowym kaflu, po zniszczeniu go calkowicie - nie ma ich w pozostalych zlotych kaflach. 2. predkosc pilki wzrasta o 7% na poziom (nie 10%). 3. dlugosc paletki na najmniejszych urzadzeniach powinna byc jeszcze 10% wieksza. 4. bonus spowolnienia/ przyspieszenia: spowalniamy dwukrotnie (graficznie wieksze smuzenie), przyspieszamy o 25% (bez zmian) - graficznie smuzenie ma kolor czerwony w takim wypadku. 5. Bonus strzelania nie powinien znikac po 15s. 6. Dlugosc paletki i posiadanie armaty przechodza miedzy poziomami.`
+134. `zwiekszanie i zmniejszanie dlugosci paletki - 11 poziomow (stan"0" - oryginalna dlugosc - 5 zwiekszajacych dlugosc i 5 zmniejszajacych w krokach zdefiniowanyj ponizej). Czyli od stanu "0" mozemy uzyskac powiekszenie dlugosci paletki 5 razy czyli 0: 100%, 1: 150%, 2: 200%, 3:250%, 4: 300%, 5: 350%. Zmniejszanie dlugosci paletki od poziomu "0" -1: 90%, -2: 70%, -3: 50%, -4: 30%, -5: 20%. Praca przy zmniejszonej lub zmniejszonej paletce, przyklad: paletka jest zmniejszona o 1 poziom (do -1) - bonus zwiekszajacy daje poziom "0", przyklad 2: paletka jest zwiekszona do poziomu 2 (200%) - zmniejszenie o 1 daje poziom 1 (150%)`
+135. `wazna zmiana mechaniki - ilosc zlotych kafli rowna sumie bonusow pozytywnych i negatywnych - na kazdym levelu dostepny kazdy bonus.`
+136. `w zlotych kaflach z bonusami nie powinno byc "fireball" i zycie +1, druga rzecz: poziomy dlugosci paletki: 1: 125%, 2: 150%, 3: 175%, 4:200%, 5: 250%`
+137. `nazywajmy bonusy w betonowych blokach "super-bonusami", dodajemy dwa negatywne bonusy -> nagla smierc (ikona czaszki), reset paletki (rozmiar poczatkowy, brak armaty i kleju) - ikona X`
+138. `zmiana mechaniki - jesli ostatni kafel ma bonus - konczymy gre dopiero kiedy zleci na sam dol`
+139. `nagla smierc - po prostu zabiera 1 zycie - jest rownoznaczne z upuszczeniem pilki a nie koncem calej gry`
+140. `dodajmy dzwieki - styl kosmiczny`
+141. `dzwieki bonusu, superbonusu powinny sie roznic dla negatywnych i pozytywnych`
+142. `wprowadzamy dodatkowy diamentowy kafelek - podobny jak betonowy, ale zeby go rozbic trzeba uderzyc trzy razy - podobnie jak betonowy dostarcza superbonusy. Krysztalowe pojawiaja sie od poziomu 3 co +1 co 3 poziomy. Zmiana w betonowych - pojawiaja sie od poziomu 2 +1 co 3 poziom.`
+143. `zmiana mechaniki - zlote kafle nie powinny byc oznaczone - tzn. mamy bonusy "zwykle" poukrywane losowo w zwyklych kaflach`
+144. `w krysztalowych kaflach tylko pozytywne super-bonusy`
+145. `pojawianie sie betonowych kafli - 2,4,6,8,10...itd. poziom, krysztalowe - 3,6,9,12... itd`
+146. `wprowadzamy "layout" planszy - dodatkowe niezniszczalne sciany. Obecnie mamy uklad kafli 5x8 - wirtualnie o 2 ponizej, dokladne wspolzedne (od gory: 8, od lewa: 2) i (8,6) wprowadzamy dwa niezniszczalne (jasnoszare) scianki o wielkosci kafelka`
+147. `dobra, to teraz docelowe layouty plansz - plansza 1: bez scian, plansza 2: sciany (8,2), (8,7), plansza 3: sciany (8,2), (9,2), (8,7), (9,7), plansza 4: (8,2), (9,2), (8,3), (8,7), (9,7), (8,6)`
+148. `zmiana layoutu: 1: bez scian, plansza 2: (8,2), (8,7), plansza 3: jak "2", plansza 4: (8,2), (9,2), (8,7), (9,7), plansza 5: jak "4", plansza "6": (8,2), (9,2), (10, 2), (8,7), (9,7), (10,7)`
+149. `zmiana mechaniki fireball - niszczy nawet sciany (jasnoszare)`
+150. `dodaj tymczasowa opcje - nacisniecie CTRL i plus zwieksza level o 1`
+151. `zmiana layoutu: 1: bez scian, plansza 2: (8,2), (8,7), plansza 3: jak "2", plansza 4: (8,2), (10,2), (8,7), (10,7), plansza 5: jak "4", plansza "6": (8,2), (9,2), (10, 2), (8,7), (9,7), (10,7), plansza 7 jak "6", plansza "8": (8,2), (11,2), (8,7), (11,7), plansza "9" jak 8, plansza 10: (8,2), (9,2), (11, 2), (8,7), (9,7), (11,7), plansza 11 jak 10, 12: (8,2), (9,2), (10, 7), (11, 2), (8,7), (9,7), (10,7) (11,7) kolejne plansze powtarzaja cykl`
+152. `dobra poprawka plansz: plansza 1 - brak scian, 2,3: sciana pojedyncza, 4,5: sciana z 2 klockow, 6,7: sciana z 3 klockow, 8,9: sciana z 4 klockow i potem cykl`
+153. `usun ctrl++`

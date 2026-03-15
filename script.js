@@ -53,6 +53,13 @@ if (versionBadgeElement) {
   versionBadgeElement.textContent = APP_VERSION;
 }
 
+const audioState = {
+  context: null,
+  masterGain: null,
+  enabled: typeof window.AudioContext === "function" || typeof window.webkitAudioContext === "function",
+  lastPlayedAt: {},
+};
+
 const leaderboardState = {
   mode: null,
   scoreSaved: false,
@@ -72,6 +79,7 @@ const game = {
   won: false,
   message: "...",
   startOverlayMode: "levelStart",
+  pendingLevelAdvance: false,
 };
 
 const paddle = {
@@ -106,12 +114,219 @@ const brickConfig = {
   height: 22,
 };
 
+function getAudioContextClass() {
+  return window.AudioContext || window.webkitAudioContext || null;
+}
+
+function ensureAudioContext() {
+  if (!audioState.enabled) {
+    return null;
+  }
+
+  if (!audioState.context) {
+    const AudioContextClass = getAudioContextClass();
+
+    if (!AudioContextClass) {
+      audioState.enabled = false;
+      return null;
+    }
+
+    const contextInstance = new AudioContextClass();
+    const masterGain = contextInstance.createGain();
+    masterGain.gain.value = 0.18;
+    masterGain.connect(contextInstance.destination);
+    audioState.context = contextInstance;
+    audioState.masterGain = masterGain;
+  }
+
+  return audioState.context;
+}
+
+function unlockAudio() {
+  const audioContext = ensureAudioContext();
+
+  if (audioContext && audioContext.state === "suspended") {
+    void audioContext.resume();
+  }
+}
+
+function canPlayAudio(name, minInterval = 0.04) {
+  const now = performance.now() / 1000;
+  const lastPlayedAt = audioState.lastPlayedAt[name] || 0;
+
+  if (now - lastPlayedAt < minInterval) {
+    return false;
+  }
+
+  audioState.lastPlayedAt[name] = now;
+  return true;
+}
+
+function playTone(startTime, {
+  frequency,
+  duration,
+  type = "sine",
+  volume = 0.25,
+  attack = 0.005,
+  release = 0.09,
+  detune = 0,
+  endFrequency = null,
+}) {
+  const audioContext = ensureAudioContext();
+
+  if (!audioContext || !audioState.masterGain) {
+    return;
+  }
+
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, startTime);
+  oscillator.detune.setValueAtTime(detune, startTime);
+
+  if (endFrequency && endFrequency !== frequency) {
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, endFrequency), startTime + duration);
+  }
+
+  gainNode.gain.setValueAtTime(0.0001, startTime);
+  gainNode.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), startTime + attack);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration + release);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioState.masterGain);
+  oscillator.start(startTime);
+  oscillator.stop(startTime + duration + release + 0.02);
+}
+
+function playSound(name) {
+  const audioContext = ensureAudioContext();
+
+  if (!audioContext || audioContext.state !== "running") {
+    return;
+  }
+
+  const currentTime = audioContext.currentTime + 0.002;
+
+  if (name === "launch") {
+    if (!canPlayAudio(name, 0.08)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 320, endFrequency: 540, duration: 0.12, type: "triangle", volume: 0.18 });
+    playTone(currentTime + 0.04, { frequency: 640, endFrequency: 860, duration: 0.08, type: "sine", volume: 0.11 });
+  } else if (name === "paddleHit") {
+    if (!canPlayAudio(name, 0.03)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 220, endFrequency: 300, duration: 0.05, type: "triangle", volume: 0.12 });
+  } else if (name === "wallHit") {
+    if (!canPlayAudio(name, 0.03)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 170, endFrequency: 140, duration: 0.045, type: "sine", volume: 0.08 });
+  } else if (name === "brickHit") {
+    if (!canPlayAudio(name, 0.02)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 420, endFrequency: 360, duration: 0.04, type: "square", volume: 0.06 });
+  } else if (name === "positiveBonusCatch") {
+    if (!canPlayAudio(name, 0.06)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 520, endFrequency: 760, duration: 0.09, type: "triangle", volume: 0.15 });
+    playTone(currentTime + 0.05, { frequency: 780, endFrequency: 980, duration: 0.07, type: "sine", volume: 0.1 });
+  } else if (name === "negativeBonusCatch") {
+    if (!canPlayAudio(name, 0.06)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 430, endFrequency: 280, duration: 0.1, type: "sawtooth", volume: 0.13 });
+    playTone(currentTime + 0.045, { frequency: 260, endFrequency: 190, duration: 0.09, type: "triangle", volume: 0.08 });
+  } else if (name === "positiveSuperBonusCatch") {
+    if (!canPlayAudio(name, 0.08)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 380, endFrequency: 720, duration: 0.14, type: "sawtooth", volume: 0.13 });
+    playTone(currentTime + 0.06, { frequency: 880, endFrequency: 1260, duration: 0.1, type: "triangle", volume: 0.1 });
+  } else if (name === "negativeSuperBonusCatch") {
+    if (!canPlayAudio(name, 0.08)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 310, endFrequency: 170, duration: 0.16, type: "sawtooth", volume: 0.14 });
+    playTone(currentTime + 0.05, { frequency: 220, endFrequency: 120, duration: 0.14, type: "square", volume: 0.1 });
+  } else if (name === "laser") {
+    if (!canPlayAudio(name, 0.04)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 920, endFrequency: 460, duration: 0.05, type: "sawtooth", volume: 0.07 });
+  } else if (name === "lifeLost") {
+    if (!canPlayAudio(name, 0.12)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 280, endFrequency: 140, duration: 0.16, type: "sawtooth", volume: 0.16 });
+    playTone(currentTime + 0.07, { frequency: 160, endFrequency: 90, duration: 0.18, type: "triangle", volume: 0.1 });
+  } else if (name === "levelUp") {
+    if (!canPlayAudio(name, 0.2)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 360, duration: 0.08, type: "triangle", volume: 0.12 });
+    playTone(currentTime + 0.08, { frequency: 540, duration: 0.08, type: "triangle", volume: 0.12 });
+    playTone(currentTime + 0.16, { frequency: 760, duration: 0.11, type: "sine", volume: 0.13 });
+  } else if (name === "pause") {
+    if (!canPlayAudio(name, 0.08)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 300, endFrequency: 250, duration: 0.08, type: "triangle", volume: 0.09 });
+  } else if (name === "resume") {
+    if (!canPlayAudio(name, 0.08)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 250, endFrequency: 340, duration: 0.08, type: "triangle", volume: 0.09 });
+  } else if (name === "gameOver") {
+    if (!canPlayAudio(name, 0.25)) {
+      return;
+    }
+
+    playTone(currentTime, { frequency: 240, endFrequency: 160, duration: 0.18, type: "sawtooth", volume: 0.13 });
+    playTone(currentTime + 0.14, { frequency: 150, endFrequency: 72, duration: 0.3, type: "triangle", volume: 0.12 });
+  }
+}
+
 function getBrickRows() {
   return 5;
 }
 
 function getBrickColumns() {
   return 8;
+}
+
+const boardWallHeights = [0, 1, 1, 2, 2, 3, 3, 4, 4];
+
+function buildSideWallLayout(height) {
+  const wallTiles = [];
+
+  for (let offset = 0; offset < height; offset += 1) {
+    wallTiles.push({ row: 7 + offset, column: 1 });
+    wallTiles.push({ row: 7 + offset, column: 6 });
+  }
+
+  return wallTiles;
+}
+
+function getLayoutWallTiles() {
+  const layoutIndex = (Math.max(game.level, 1) - 1) % boardWallHeights.length;
+  return buildSideWallLayout(boardWallHeights[layoutIndex]);
 }
 
 function getPlayfieldTopBoundary() {
@@ -153,6 +368,16 @@ const bonusCatalog = {
     symbol: "*",
     color: "#ef4444",
   },
+  suddenDeath: {
+    label: "Nagła śmierć",
+    symbol: "☠",
+    color: "#ef4444",
+  },
+  resetPaddle: {
+    label: "Reset paletki",
+    symbol: "X",
+    color: "#f87171",
+  },
   shrinkHalf: {
     label: "Paletka -50%",
     symbol: "-",
@@ -164,7 +389,7 @@ const bonusCatalog = {
     color: "#fb7185",
   },
   speedDouble: {
-    label: "Piłka -25%",
+    label: "Piłka -50%",
     symbol: ">",
     color: "#f97316",
   },
@@ -174,6 +399,14 @@ const bonusCatalog = {
     color: "#ef4444",
   },
 };
+
+const positiveBonusTypes = ["widen", "sticky", "shooter", "extraLife", "speedDouble", "superBall"];
+const standardNegativeBonusTypes = ["shrinkHalf", "shrinkThird", "speedTriple"];
+const negativeBonusTypes = [...standardNegativeBonusTypes, "suddenDeath", "resetPaddle"];
+const superBonusTypes = ["extraLife", "superBall", "suddenDeath", "resetPaddle"];
+const positiveSuperBonusTypes = ["extraLife", "superBall"];
+const negativeSuperBonusTypes = ["suddenDeath", "resetPaddle"];
+const standardBonusTypes = ["widen", "sticky", "shooter", ...standardNegativeBonusTypes];
 
 let highScores = [];
 
@@ -581,11 +814,13 @@ function pauseGame() {
     return;
   }
 
+  unlockAudio();
   game.paused = true;
   controls.left = false;
   controls.right = false;
   renderStartOverlay();
   renderPauseOverlay();
+  playSound("pause");
   pauseResumeButton.focus();
 }
 
@@ -594,12 +829,14 @@ function resumeGame() {
     return;
   }
 
+  unlockAudio();
   game.paused = false;
   controls.left = false;
   controls.right = false;
   lastPointerMoveTime = 0;
   renderPauseOverlay();
   renderStartOverlay();
+  playSound("resume");
 }
 
 function togglePause() {
@@ -701,6 +938,7 @@ function startFromLeaderboard() {
     return;
   }
 
+  unlockAudio();
   const needsReset = leaderboardState.mode === "gameover";
 
   if (needsReset) {
@@ -712,18 +950,26 @@ function startFromLeaderboard() {
 }
 
 function isPositiveBonus(type) {
-  return (
-    type === "widen" ||
-    type === "sticky" ||
-    type === "shooter" ||
-    type === "extraLife" ||
-    type === "speedDouble" ||
-    type === "superBall"
-  );
+  return positiveBonusTypes.includes(type);
 }
 
-const paddleSizeLevels = [0.25, 0.5, 0.75, 1, 1.5, 2, 2.5];
-const neutralLevelIndex = 3;
+function getBonusCatchSoundName(type) {
+  const prefix = isPositiveBonus(type) ? "positive" : "negative";
+  const suffix = superBonusTypes.includes(type) ? "SuperBonusCatch" : "BonusCatch";
+  return `${prefix}${suffix}`;
+}
+
+function shuffleArray(items) {
+  for (let index = items.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [items[index], items[randomIndex]] = [items[randomIndex], items[index]];
+  }
+
+  return items;
+}
+
+const paddleSizeLevels = [0.2, 0.3, 0.5, 0.7, 0.9, 1, 1.25, 1.5, 1.75, 2, 2.5];
+const neutralLevelIndex = 5;
 
 const effects = {
   paddleSizeLevel: neutralLevelIndex,
@@ -743,8 +989,39 @@ let fallingBonuses = [];
 let projectiles = [];
 let lastPointerMoveTime = 0;
 
-function getConcreteBrickCount(totalBricks, reservedBonusCount) {
-  return Math.max(0, Math.min(game.level - 1, totalBricks - reservedBonusCount));
+function getDurableBrickCount(startLevel, levelStep) {
+  if (game.level < startLevel) {
+    return 0;
+  }
+
+  return Math.floor((game.level - startLevel) / levelStep) + 1;
+}
+
+function setBrickMaterial(brick, material) {
+  brick.material = material;
+  brick.destructible = material !== "wall";
+
+  if (material === "wall") {
+    brick.hitPoints = 1;
+    brick.maxHitPoints = 1;
+    brick.bonusType = null;
+    return;
+  }
+
+  if (material === "diamond") {
+    brick.hitPoints = 3;
+    brick.maxHitPoints = 3;
+    return;
+  }
+
+  if (material === "concrete") {
+    brick.hitPoints = 2;
+    brick.maxHitPoints = 2;
+    return;
+  }
+
+  brick.hitPoints = 1;
+  brick.maxHitPoints = 1;
 }
 
 function resizeCanvas() {
@@ -771,17 +1048,6 @@ function createBricks() {
   bricks = [];
   const rows = getBrickRows();
   const columns = getBrickColumns();
-  const standardBonusTypes = [
-    "widen",
-    "sticky",
-    "shooter",
-    "extraLife",
-    "superBall",
-    "shrinkHalf",
-    "shrinkThird",
-    "speedDouble",
-    "speedTriple",
-  ];
 
   for (let row = 0; row < rows; row += 1) {
     for (let column = 0; column < columns; column += 1) {
@@ -794,6 +1060,7 @@ function createBricks() {
         width: 0,
         height: brickConfig.height,
         material: "standard",
+        destructible: true,
         hitPoints: 1,
         maxHitPoints: 1,
         bonusType: null,
@@ -801,29 +1068,61 @@ function createBricks() {
     }
   }
 
-  const shuffledIndices = Array.from({ length: bricks.length }, (_, index) => index);
+  const shuffledIndices = shuffleArray(Array.from({ length: bricks.length }, (_, index) => index));
+  const standardBonusCount = Math.min(standardBonusTypes.length, bricks.length);
+  const durableSlotCount = Math.max(0, bricks.length - standardBonusCount);
+  const concreteCount = Math.min(getDurableBrickCount(2, 2), durableSlotCount);
+  const diamondCount = Math.min(getDurableBrickCount(3, 3), durableSlotCount - concreteCount);
+  const concreteIndices = shuffledIndices.slice(0, concreteCount);
+  const diamondIndices = shuffledIndices.slice(
+    concreteCount,
+    concreteCount + diamondCount
+  );
+  const standardBonusIndices = shuffledIndices.slice(concreteCount + diamondCount);
+  const shuffledStandardBonusTypes = shuffleArray([...standardBonusTypes]);
+  const shuffledPositiveSuperBonusTypes = shuffleArray([...positiveSuperBonusTypes]);
+  const shuffledNegativeSuperBonusTypes = shuffleArray([...negativeSuperBonusTypes]);
 
-  for (let index = shuffledIndices.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
-    [shuffledIndices[index], shuffledIndices[randomIndex]] = [
-      shuffledIndices[randomIndex],
-      shuffledIndices[index],
-    ];
+  for (const brickIndex of concreteIndices) {
+    setBrickMaterial(bricks[brickIndex], "concrete");
   }
 
-  const bonusCount = Math.max(1, Math.round(bricks.length * 0.18));
-  const concreteCount = getConcreteBrickCount(bricks.length, bonusCount);
-
-  for (let index = 0; index < bonusCount; index += 1) {
-    bricks[shuffledIndices[index]].bonusType =
-      standardBonusTypes[Math.floor(Math.random() * standardBonusTypes.length)];
+  for (const brickIndex of diamondIndices) {
+    setBrickMaterial(bricks[brickIndex], "diamond");
   }
 
-  for (let index = bonusCount; index < bonusCount + concreteCount; index += 1) {
-    const concreteBrick = bricks[shuffledIndices[index]];
-    concreteBrick.material = "concrete";
-    concreteBrick.hitPoints = 2;
-    concreteBrick.maxHitPoints = 2;
+  for (let index = 0; index < standardBonusCount; index += 1) {
+    bricks[standardBonusIndices[index]].bonusType = shuffledStandardBonusTypes[index];
+  }
+
+  const concreteSuperBonusCount = Math.min(concreteIndices.length, shuffledNegativeSuperBonusTypes.length);
+  const diamondSuperBonusCount = Math.min(diamondIndices.length, shuffledPositiveSuperBonusTypes.length);
+
+  for (let index = 0; index < concreteSuperBonusCount; index += 1) {
+    bricks[concreteIndices[index]].bonusType = shuffledNegativeSuperBonusTypes[index];
+  }
+
+  for (let index = 0; index < diamondSuperBonusCount; index += 1) {
+    bricks[diamondIndices[index]].bonusType = shuffledPositiveSuperBonusTypes[index];
+  }
+
+  for (const wallTile of getLayoutWallTiles()) {
+    const wallBrick = {
+      row: wallTile.row,
+      column: wallTile.column,
+      alive: true,
+      x: 0,
+      y: 0,
+      width: 0,
+      height: brickConfig.height,
+      material: "wall",
+      destructible: false,
+      hitPoints: 1,
+      maxHitPoints: 1,
+      bonusType: null,
+    };
+    setBrickMaterial(wallBrick, "wall");
+    bricks.push(wallBrick);
   }
 
   layoutBricks();
@@ -848,6 +1147,24 @@ function layoutBricks() {
   }
 }
 
+function hasRemainingDestructibleBricks() {
+  return bricks.some((brick) => brick.alive && brick.destructible !== false);
+}
+
+function bounceBallFromBrick(previousX, brick) {
+  const wasLeftOfBrick = previousX + ball.radius <= brick.x;
+  const wasRightOfBrick = previousX - ball.radius >= brick.x + brick.width;
+
+  if (wasLeftOfBrick || wasRightOfBrick) {
+    ball.velocityX *= -1;
+    ball.spin *= 0.94;
+    return;
+  }
+
+  ball.velocityY *= -1;
+  ball.spin *= 0.97;
+}
+
 function getBasePaddleWidth() {
   return canvas.width * 0.1386 * getSmallDevicePaddleFactor();
 }
@@ -858,7 +1175,7 @@ function getSmallDevicePaddleFactor() {
   }
 
   const shortestSide = Math.min(canvas.width, canvas.height);
-  return shortestSide <= 480 ? 1.1 : 1;
+  return shortestSide <= 480 ? 1.2 : 1;
 }
 
 function getOrientationBasedBallSpeedFactor() {
@@ -884,7 +1201,7 @@ function getSmallDeviceBallSpeedFactor() {
 }
 
 function getCurrentBallBaseSpeed() {
-  const levelSpeedFactor = 1 + (game.level - 1) * 0.1;
+  const levelSpeedFactor = 1 + (game.level - 1) * 0.07;
   return (
     ball.baseSpeed *
     levelSpeedFactor *
@@ -911,6 +1228,24 @@ function syncBallSpeedWithBaseSpeed(previousBaseSpeed) {
   ball.spin *= velocityRatio;
 }
 
+function advanceToNextLevel() {
+  if (leaderboardState.mode) {
+    return;
+  }
+
+  playSound("levelUp");
+  game.pendingLevelAdvance = false;
+  game.running = false;
+  game.level += 1;
+  clearEffects({ preservePaddleSizeLevel: true, preserveShooter: true });
+  createBricks();
+  resetRound();
+  game.message = `Poziom ${game.level}`;
+  game.startOverlayMode = "levelStart";
+  renderStartOverlay();
+  updateHud();
+}
+
 function syncPaddleWidth() {
   const previousCenter = paddle.x + paddle.width / 2 || canvas.width / 2;
   const widenedWidth = Math.min(
@@ -930,11 +1265,13 @@ function syncPaddleWidth() {
   }
 }
 
-function clearEffects() {
-  effects.paddleSizeLevel = neutralLevelIndex;
+function clearEffects({ preservePaddleSizeLevel = false, preserveShooter = false } = {}) {
+  if (!preservePaddleSizeLevel) {
+    effects.paddleSizeLevel = neutralLevelIndex;
+  }
   effects.stickyActive = false;
   effects.stickyTimer = 0;
-  effects.shooterActive = false;
+  effects.shooterActive = preserveShooter ? effects.shooterActive : false;
   effects.shooterTimer = 0;
   effects.superBallActive = false;
   effects.superBallTimer = 0;
@@ -974,6 +1311,7 @@ function launchBall() {
     return;
   }
 
+  unlockAudio();
   const baseSpeed = getCurrentBallBaseSpeed();
   ball.attached = false;
   ball.stickyAttachment = false;
@@ -986,12 +1324,14 @@ function launchBall() {
   game.message = "";
   game.startOverlayMode = "levelStart";
   renderStartOverlay();
+  playSound("launch");
 }
 
 function resetRound() {
   const isLifeContinuation = game.running || game.message === "";
   fallingBonuses = [];
   projectiles = [];
+  game.pendingLevelAdvance = false;
   game.paused = false;
   paddle.baseWidth = getBasePaddleWidth();
   syncPaddleWidth();
@@ -1016,6 +1356,7 @@ function resetGame() {
   game.level = 1;
   game.won = false;
   game.startOverlayMode = "levelStart";
+  game.pendingLevelAdvance = false;
   clearEffects();
   createBricks();
   resetRound();
@@ -1089,6 +1430,7 @@ function bounceOffPaddle() {
     -260,
     Math.min(260, ball.spin * 0.35 + spinFromHit + spinFromPaddle)
   );
+  playSound("paddleHit");
 
   if (effects.stickyActive) {
     attachBallToPaddle(impactOffsetX, true);
@@ -1104,21 +1446,35 @@ function bounceOffWalls() {
     ball.x = canvas.width - ball.radius;
     ball.velocityX *= -1;
     ball.spin *= 0.92;
+    playSound("wallHit");
   } else if (ball.x - ball.radius <= 0) {
     ball.x = ball.radius;
     ball.velocityX *= -1;
     ball.spin *= 0.92;
+    playSound("wallHit");
   }
 
   if (ball.y - ball.radius <= topBoundary) {
     ball.y = topBoundary + ball.radius;
     ball.velocityY *= -1;
     ball.spin *= 0.96;
+    playSound("wallHit");
   }
 }
 
-function hitBrick(brick) {
+function hitBrick(brick, canDestroyWalls = false) {
   if (!brick.alive) {
+    return;
+  }
+
+  if (brick.destructible === false) {
+    if (canDestroyWalls) {
+      brick.alive = false;
+      playSound("brickHit");
+    } else {
+      playSound("wallHit");
+    }
+
     return;
   }
 
@@ -1130,6 +1486,7 @@ function hitBrick(brick) {
   }
 
   brick.alive = false;
+  playSound("brickHit");
 
   if (brick.bonusType) {
     fallingBonuses.push({
@@ -1145,16 +1502,14 @@ function hitBrick(brick) {
   game.score += 100;
   updateHud();
 
-  if (bricks.every((candidate) => !candidate.alive)) {
+  if (!hasRemainingDestructibleBricks()) {
     game.running = false;
-    game.level += 1;
-    clearEffects();
-    createBricks();
-    resetRound();
-    game.message = `Poziom ${game.level}`;
-    game.startOverlayMode = "levelStart";
-    renderStartOverlay();
-    updateHud();
+    game.pendingLevelAdvance = fallingBonuses.length > 0;
+
+    if (!game.pendingLevelAdvance) {
+      advanceToNextLevel();
+    }
+
     return;
   }
 
@@ -1185,7 +1540,11 @@ function bounceOffBricks(previousX, previousY) {
         continue;
       }
 
-      hitBrick(brick);
+      if (brick.destructible === false) {
+        hitBrick(brick, true);
+      } else {
+        hitBrick(brick, true);
+      }
 
       if (!game.running || ball.attached) {
         break;
@@ -1210,17 +1569,7 @@ function bounceOffBricks(previousX, previousY) {
       continue;
     }
 
-    const wasLeftOfBrick = previousX + ball.radius <= brick.x;
-    const wasRightOfBrick = previousX - ball.radius >= brick.x + brick.width;
-
-    if (wasLeftOfBrick || wasRightOfBrick) {
-      ball.velocityX *= -1;
-      ball.spin *= 0.94;
-    } else {
-      ball.velocityY *= -1;
-      ball.spin *= 0.97;
-    }
-
+    bounceBallFromBrick(previousX, brick);
     hitBrick(brick);
     break;
   }
@@ -1239,10 +1588,12 @@ function loseLife() {
     ball.stickyAttachment = false;
     ball.stickyAutoLaunchTimer = 0;
     game.message = "";
+    playSound("gameOver");
     showLeaderboard("gameover");
     return;
   }
 
+  playSound("lifeLost");
   resetRound();
 }
 
@@ -1261,15 +1612,30 @@ function activateBonus(type) {
     effects.stickyTimer = 15;
   } else if (type === "shooter") {
     effects.shooterActive = true;
-    effects.shooterTimer = 15;
+    effects.shooterTimer = 0;
   } else if (type === "extraLife") {
     game.lives = Math.min(3, game.lives + 1);
   } else if (type === "superBall") {
     effects.superBallActive = true;
     effects.superBallTimer = 5;
+  } else if (type === "suddenDeath") {
+    loseLife();
+    return;
+  } else if (type === "resetPaddle") {
+    effects.paddleSizeLevel = neutralLevelIndex;
+    effects.stickyActive = false;
+    effects.stickyTimer = 0;
+    effects.shooterActive = false;
+    effects.shooterTimer = 0;
+    syncPaddleWidth();
+
+    if (ball.attached && ball.stickyAttachment) {
+      ball.stickyAttachment = false;
+      ball.stickyAutoLaunchTimer = 0;
+    }
   } else if (type === "speedDouble") {
     const previousSpeedFactor = 1 + effects.speedModifier;
-    effects.speedModifier = -0.25;
+    effects.speedModifier = -0.5;
     effects.speedTimer = 15;
     const velocityRatio = (1 + effects.speedModifier) / previousSpeedFactor;
     if (!ball.attached) {
@@ -1308,14 +1674,6 @@ function updateEffects(deltaSeconds) {
       if (ball.attached && ball.stickyAttachment) {
         launchBall();
       }
-    }
-  }
-
-  if (effects.shooterActive) {
-    effects.shooterTimer = Math.max(0, effects.shooterTimer - deltaSeconds);
-    if (effects.shooterTimer === 0) {
-      effects.shooterActive = false;
-      hudChanged = true;
     }
   }
 
@@ -1367,13 +1725,23 @@ function updateFallingBonuses(deltaSeconds) {
 
     if (caughtByPaddle) {
       game.score += isPositiveBonus(bonus.type) ? 200 : 400;
+      playSound(getBonusCatchSoundName(bonus.type));
       activateBonus(bonus.type);
       fallingBonuses.splice(index, 1);
+
+      if (game.pendingLevelAdvance && fallingBonuses.length === 0) {
+        advanceToNextLevel();
+      }
+
       continue;
     }
 
     if (bonus.y - bonus.size / 2 > canvas.height) {
       fallingBonuses.splice(index, 1);
+
+      if (game.pendingLevelAdvance && fallingBonuses.length === 0) {
+        advanceToNextLevel();
+      }
     }
   }
 }
@@ -1411,11 +1779,11 @@ function updateProjectiles(deltaSeconds) {
       break;
     }
 
-    if (hit) {
-      continue;
+      if (hit) {
+        continue;
+      }
     }
   }
-}
 
 function updateBall(deltaSeconds) {
   if (ball.attached) {
@@ -1456,8 +1824,9 @@ function updateBall(deltaSeconds) {
   }
 
   ball.trail.unshift({ x: ball.x, y: ball.y });
-  if (ball.trail.length > 7) {
-    ball.trail.length = 7;
+  const maxTrailLength = effects.speedModifier < 0 ? 12 : 7;
+  if (ball.trail.length > maxTrailLength) {
+    ball.trail.length = maxTrailLength;
   }
 }
 
@@ -1545,8 +1914,9 @@ function drawPaddle() {
 
 function drawBall() {
   const speedTrailFactor =
-    effects.speedModifier < 0 ? 1.95 : effects.speedModifier > 0 ? 0.55 : 1;
+    effects.speedModifier < 0 ? 3.2 : effects.speedModifier > 0 ? 0.55 : 1;
   const isSuperBall = effects.superBallActive;
+  const isSpeedBoosted = effects.speedModifier > 0;
   for (let index = ball.trail.length - 1; index >= 0; index -= 1) {
     const trailPoint = ball.trail[index];
     const alpha =
@@ -1565,6 +1935,11 @@ function drawBall() {
     if (isSuperBall) {
       trailGradient.addColorStop(0, `rgba(255, 241, 241, ${alpha * 1.15})`);
       trailGradient.addColorStop(0.35, `rgba(255, 106, 106, ${alpha})`);
+      trailGradient.addColorStop(0.72, `rgba(220, 38, 38, ${alpha * 0.82})`);
+      trailGradient.addColorStop(1, "rgba(127, 29, 29, 0)");
+    } else if (isSpeedBoosted) {
+      trailGradient.addColorStop(0, `rgba(255, 241, 241, ${alpha * 1.08})`);
+      trailGradient.addColorStop(0.4, `rgba(248, 113, 113, ${alpha})`);
       trailGradient.addColorStop(0.72, `rgba(220, 38, 38, ${alpha * 0.82})`);
       trailGradient.addColorStop(1, "rgba(127, 29, 29, 0)");
     } else {
@@ -1757,6 +2132,41 @@ function drawBonusIcon(type, centerX, centerY, size, isPositive) {
       }
       context.stroke();
     }
+  } else if (type === "suddenDeath") {
+    context.fillStyle = "#ffe4e6";
+    context.strokeStyle = "#fff7ed";
+    context.lineWidth = Math.max(1.8, size * 0.09);
+    context.beginPath();
+    context.arc(0, -size * 0.02, size * 0.18, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+    context.beginPath();
+    context.moveTo(-size * 0.18, size * 0.14);
+    context.lineTo(size * 0.18, size * 0.14);
+    context.moveTo(-size * 0.12, size * 0.14);
+    context.lineTo(-size * 0.2, size * 0.28);
+    context.moveTo(size * 0.12, size * 0.14);
+    context.lineTo(size * 0.2, size * 0.28);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(-size * 0.08, -size * 0.04);
+    context.lineTo(-size * 0.02, size * 0.02);
+    context.moveTo(-size * 0.02, -size * 0.04);
+    context.lineTo(-size * 0.08, size * 0.02);
+    context.moveTo(size * 0.02, -size * 0.04);
+    context.lineTo(size * 0.08, size * 0.02);
+    context.moveTo(size * 0.08, -size * 0.04);
+    context.lineTo(size * 0.02, size * 0.02);
+    context.moveTo(-size * 0.06, size * 0.08);
+    context.quadraticCurveTo(0, size * 0.13, size * 0.06, size * 0.08);
+    context.stroke();
+  } else if (type === "resetPaddle") {
+    context.beginPath();
+    context.moveTo(-size * 0.22, -size * 0.22);
+    context.lineTo(size * 0.22, size * 0.22);
+    context.moveTo(size * 0.22, -size * 0.22);
+    context.lineTo(-size * 0.22, size * 0.22);
+    context.stroke();
   }
 
   context.restore();
@@ -1851,11 +2261,14 @@ function drawBricks() {
       continue;
     }
 
-    const isBonusBrick = Boolean(brick.bonusType);
     const isConcreteBrick = brick.material === "concrete";
-    const baseColor = isBonusBrick
-      ? "#facc15"
-      : isConcreteBrick
+    const isDiamondBrick = brick.material === "diamond";
+    const isWallBrick = brick.material === "wall";
+    const baseColor = isWallBrick
+        ? "#d1d5db"
+        : isDiamondBrick
+        ? "#67e8f9"
+        : isConcreteBrick
         ? "#6b7280"
         : rowColors[brick.row % rowColors.length];
     const face = context.createLinearGradient(
@@ -1866,26 +2279,33 @@ function drawBricks() {
     );
     face.addColorStop(
       0,
-      isBonusBrick
-        ? "rgba(255, 248, 196, 0.55)"
-        : isConcreteBrick
+      isWallBrick
+          ? "rgba(255, 255, 255, 0.62)"
+          : isDiamondBrick
+          ? "rgba(240, 253, 255, 0.56)"
+          : isConcreteBrick
           ? "rgba(255, 255, 255, 0.28)"
           : "rgba(255, 255, 255, 0.34)"
     );
     face.addColorStop(0.15, baseColor);
-    face.addColorStop(0.72, baseColor);
+    face.addColorStop(0.48, baseColor);
+    face.addColorStop(0.72, isDiamondBrick ? "#22d3ee" : baseColor);
     face.addColorStop(
       1,
-      isBonusBrick
-        ? "rgba(120, 84, 10, 0.32)"
-        : isConcreteBrick
+      isWallBrick
+          ? "rgba(100, 116, 139, 0.34)"
+          : isDiamondBrick
+          ? "rgba(8, 47, 73, 0.4)"
+          : isConcreteBrick
           ? "rgba(31, 41, 55, 0.38)"
           : "rgba(10, 14, 28, 0.32)"
     );
 
-    context.shadowColor = isBonusBrick
-      ? "rgba(250, 204, 21, 0.48)"
-      : isConcreteBrick
+    context.shadowColor = isWallBrick
+        ? "rgba(226, 232, 240, 0.4)"
+        : isDiamondBrick
+        ? "rgba(34, 211, 238, 0.45)"
+        : isConcreteBrick
         ? "rgba(107, 114, 128, 0.42)"
         : `${baseColor}66`;
     context.shadowBlur = 14;
@@ -1895,17 +2315,21 @@ function drawBricks() {
     context.shadowBlur = 0;
     context.shadowOffsetY = 0;
 
-    context.fillStyle = isBonusBrick
-      ? "rgba(255, 252, 230, 0.62)"
-      : isConcreteBrick
+    context.fillStyle = isWallBrick
+        ? "rgba(255, 255, 255, 0.58)"
+        : isDiamondBrick
+        ? "rgba(240, 253, 255, 0.56)"
+        : isConcreteBrick
         ? "rgba(255, 255, 255, 0.32)"
         : "rgba(255, 255, 255, 0.45)";
     context.fillRect(brick.x + bevel, brick.y + bevel, brick.width - bevel * 2, 2);
     context.fillRect(brick.x + bevel, brick.y + bevel, 2, brick.height - bevel * 2);
 
-    context.fillStyle = isBonusBrick
-      ? "rgba(120, 84, 10, 0.28)"
-      : isConcreteBrick
+    context.fillStyle = isWallBrick
+        ? "rgba(100, 116, 139, 0.28)"
+        : isDiamondBrick
+        ? "rgba(8, 47, 73, 0.3)"
+        : isConcreteBrick
         ? "rgba(31, 41, 55, 0.34)"
         : "rgba(3, 7, 18, 0.3)";
     context.fillRect(
@@ -1929,25 +2353,31 @@ function drawBricks() {
     );
     inset.addColorStop(
       0,
-      isBonusBrick
-        ? "rgba(255, 250, 205, 0.34)"
-        : isConcreteBrick
+      isWallBrick
+          ? "rgba(255, 255, 255, 0.22)"
+          : isDiamondBrick
+          ? "rgba(255, 255, 255, 0.3)"
+          : isConcreteBrick
           ? "rgba(255, 255, 255, 0.14)"
           : "rgba(255, 255, 255, 0.26)"
     );
     inset.addColorStop(
       0.4,
-      isBonusBrick
-        ? "rgba(255, 245, 157, 0.18)"
-        : isConcreteBrick
+      isWallBrick
+          ? "rgba(226, 232, 240, 0.16)"
+          : isDiamondBrick
+          ? "rgba(224, 242, 254, 0.18)"
+          : isConcreteBrick
           ? "rgba(255, 255, 255, 0.05)"
           : "rgba(255, 255, 255, 0.1)"
     );
     inset.addColorStop(
       1,
-      isBonusBrick
-        ? "rgba(120, 84, 10, 0.14)"
-        : isConcreteBrick
+      isWallBrick
+          ? "rgba(148, 163, 184, 0.14)"
+          : isDiamondBrick
+          ? "rgba(12, 74, 110, 0.18)"
+          : isConcreteBrick
           ? "rgba(15, 23, 42, 0.18)"
           : "rgba(4, 10, 24, 0.16)"
     );
@@ -1958,6 +2388,12 @@ function drawBricks() {
       brick.width - bevel * 2,
       brick.height - bevel * 2
     );
+
+    if (isWallBrick) {
+      context.strokeStyle = "rgba(255, 255, 255, 0.42)";
+      context.lineWidth = 1.1;
+      context.strokeRect(brick.x + bevel, brick.y + bevel, brick.width - bevel * 2, brick.height - bevel * 2);
+    }
 
     if (isConcreteBrick) {
       const dotPattern = [
@@ -2007,9 +2443,67 @@ function drawBricks() {
       }
     }
 
-    context.strokeStyle = isBonusBrick
-      ? "rgba(255, 244, 180, 0.38)"
-      : isConcreteBrick
+    if (isDiamondBrick) {
+      const facetLines = [
+        [0.2, 0.18, 0.5, 0.06, 0.8, 0.18],
+        [0.14, 0.36, 0.5, 0.2, 0.86, 0.36],
+        [0.2, 0.18, 0.14, 0.36, 0.2, 0.78],
+        [0.8, 0.18, 0.86, 0.36, 0.8, 0.78],
+        [0.2, 0.78, 0.5, 0.94, 0.8, 0.78],
+        [0.5, 0.06, 0.5, 0.94],
+        [0.14, 0.36, 0.5, 0.56, 0.86, 0.36],
+        [0.2, 0.78, 0.5, 0.56, 0.8, 0.78],
+      ];
+
+      context.strokeStyle = brick.hitPoints === 3 ? "rgba(255, 255, 255, 0.4)" : "rgba(224, 247, 255, 0.52)";
+      context.lineWidth = 1.1;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+
+      for (const line of facetLines) {
+        context.beginPath();
+        context.moveTo(brick.x + brick.width * line[0], brick.y + brick.height * line[1]);
+
+        for (let index = 2; index < line.length; index += 2) {
+          context.lineTo(brick.x + brick.width * line[index], brick.y + brick.height * line[index + 1]);
+        }
+
+        context.stroke();
+      }
+
+      if (brick.hitPoints < brick.maxHitPoints) {
+        const crackSets = brick.hitPoints === 2
+          ? [
+              [0.3, 0.2, 0.42, 0.4, 0.35, 0.66],
+              [0.67, 0.26, 0.59, 0.48, 0.71, 0.7],
+            ]
+          : [
+              [0.24, 0.16, 0.36, 0.34, 0.31, 0.58, 0.44, 0.84],
+              [0.72, 0.18, 0.6, 0.38, 0.69, 0.56, 0.57, 0.82],
+              [0.3, 0.56, 0.5, 0.46, 0.72, 0.58],
+            ];
+
+        context.strokeStyle = brick.hitPoints === 2 ? "rgba(207, 250, 254, 0.5)" : "rgba(224, 247, 255, 0.7)";
+        context.lineWidth = brick.hitPoints === 2 ? 1.2 : 1.35;
+
+        for (const line of crackSets) {
+          context.beginPath();
+          context.moveTo(brick.x + brick.width * line[0], brick.y + brick.height * line[1]);
+
+          for (let index = 2; index < line.length; index += 2) {
+            context.lineTo(brick.x + brick.width * line[index], brick.y + brick.height * line[index + 1]);
+          }
+
+          context.stroke();
+        }
+      }
+    }
+
+    context.strokeStyle = isWallBrick
+        ? "rgba(226, 232, 240, 0.34)"
+        : isDiamondBrick
+        ? "rgba(207, 250, 254, 0.3)"
+        : isConcreteBrick
         ? "rgba(229, 231, 235, 0.18)"
         : "rgba(255, 255, 255, 0.2)";
     context.strokeRect(brick.x, brick.y, brick.width, brick.height);
@@ -2053,6 +2547,8 @@ function handlePointerMove(event) {
 }
 
 function handleAction() {
+  unlockAudio();
+
   if (isTextEntryActive()) {
     return;
   }
@@ -2089,6 +2585,7 @@ function handleAction() {
       speed: 640,
     });
     effects.shotCooldown = 0.28;
+    playSound("laser");
   }
 }
 

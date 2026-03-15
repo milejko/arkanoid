@@ -18,9 +18,10 @@ Projekt powstał jako statyczna aplikacja front-endowa:
 - klasyczna rozgrywka typu brick breaker / arkanoid,
 - stały układ planszy `5 x 8`,
 - przechodzenie między poziomami,
-- wzrost bazowej prędkości piłki o 10% na każdy kolejny poziom,
-- betonowe cegły wymagające 2 trafień na wyższych poziomach,
+- wzrost bazowej prędkości piłki o 7% na każdy kolejny poziom,
+- betonowe i diamentowe cegły wymagające wielu trafień na wyższych poziomach,
 - system bonusów pozytywnych i negatywnych,
+- syntetyczne efekty dźwiękowe w kosmicznym stylu, w tym osobne SFX dla dobrych i złych bonusów,
 - pauza uruchamiana klawiszem `P` lub kliknięciem logo,
 - tablica wyników z limitem **top 10**,
 - lokalna kopia hi-score w `localStorage`,
@@ -34,8 +35,10 @@ Cel jest prosty: odbijaj piłkę, niszcz cegły i nie pozwól jej spaść pod pa
 
 - Startujesz z **3 życiami**.
 - Po zbiciu wszystkich cegieł przechodzisz na następny poziom.
-- Każdy kolejny poziom zwiększa bazową prędkość piłki.
-- Od poziomu 2 pojawiają się **betonowe cegły**. Każdy kolejny poziom dodaje jedną taką cegłę więcej.
+- Każdy kolejny poziom zwiększa bazową prędkość piłki o 7%.
+- **Betonowe cegły** pojawiają się na poziomach `2, 4, 6, 8, 10...`.
+- **Diamentowe cegły** pojawiają się na poziomach `3, 6, 9, 12...`.
+- Plansza ma też progresję layoutów z **niezniszczalnymi jasnoszarymi ściankami**; level 1 jest pusty, a kolejne poziomy zmieniają układ ścian niżej na siatce.
 - Po utracie życia aktywne bonusy znikają.
 - Po zakończeniu gry możesz zapisać wynik, ale tylko wtedy, gdy trafia do **pierwszej dziesiątki**.
 
@@ -57,23 +60,25 @@ Cel jest prosty: odbijaj piłkę, niszcz cegły i nie pozwól jej spaść pod pa
 
 ## Bonusy
 
-Bonusy są ukryte w wybranych cegłach i wypadają dopiero po ich zniszczeniu. W grze występują zarówno bonusy pozytywne, jak i negatywne.
+Standardowe bonusy są ukryte losowo w zwykłych kaflach i wypadają dopiero po ich zniszczeniu. W grze występują zarówno bonusy pozytywne, jak i negatywne. Na każdym poziomie dostępny jest pełny zestaw standardowych bonusów, ale bez **+1 życia** i **super piłki**.
 
-Na wyższych poziomach część zwykłych cegieł zastępowana jest także **betonowymi kaflami**. Wyglądają jak szare, trójwymiarowe bloki z fakturą betonu i wymagają dwóch trafień, zanim znikną.
+Na wyższych poziomach część zwykłych cegieł zastępowana jest także **betonowymi** i **diamentowymi kaflami**. Betonowe wyglądają jak szare, trójwymiarowe bloki z fakturą betonu i wymagają dwóch trafień, zanim znikną. Diamentowe są bardziej kryształowe, mają trzy poziomy wytrzymałości i pękają stopniowo aż do rozbicia po trzecim uderzeniu. Betonowe kafle niosą negatywne **super-bonusy** (`nagła śmierć`, `reset paletki`), a diamentowe tylko pozytywne (`+1 życie`, `super piłka`). Layouty ścian tworzą teraz 9‑planszowy cykl: `1: brak`, `2-3: ściana 1-klockowa`, `4-5: ściana 2-klockowa`, `6-7: ściana 3-klockowa`, `8-9: ściana 4-klockowa`, a potem cykl się powtarza. Ściany rosną pionowo po obu bokach od pozycji `(8,2)` i `(8,7)`. Aktywna **super piłka / fireball** potrafi zniszczyć również te jasnoszare ściany.
 
 ### Pozytywne
 
-- **Wydłużenie paletki** — zwiększa szerokość paletki skokowo.
+- **Wydłużenie paletki** — zwiększa szerokość paletki o jeden krok na 11-stopniowej skali (`100% → 125% → 150% → 175% → 200% → 250%`).
 - **Klej** — piłka przykleja się do paletki po kontakcie; efekt trwa 15 sekund, a przyklejona piłka i tak odpali się automatycznie po 3 sekundach.
-- **Działo** — paletka może strzelać pociskami; efekt trwa 15 sekund.
+- **Działo** — paletka może strzelać pociskami i zachowuje tę możliwość także po wejściu na kolejny poziom.
 - **+1 życie** — zwiększa liczbę żyć, maksymalnie do 3.
 - **Super piłka** — przez 5 sekund piłka przebija cegły na swojej drodze.
-- **Spowolnienie piłki** — tymczasowo zmniejsza prędkość.
+- **Spowolnienie piłki** — tymczasowo zmniejsza prędkość aż o połowę i daje mocniejsze smużenie.
 
 ### Negatywne
 
-- **Skrócenie paletki** — zmniejsza szerokość paletki.
-- **Przyspieszenie piłki** — tymczasowo zwiększa prędkość.
+- **Skrócenie paletki** — zmniejsza szerokość paletki o jeden krok na tej samej skali (`100% → 90% → 70% → 50% → 30% → 20%`).
+- **Przyspieszenie piłki** — tymczasowo zwiększa prędkość o 25% i nadaje smudze czerwony kolor.
+- **Nagła śmierć** — zabiera dokładnie jedno życie, tak jak upuszczenie piłki.
+- **Reset paletki** — przywraca bazowy rozmiar paletki i zabiera klej oraz armatę.
 
 ## Tablica wyników
 
