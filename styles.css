@@ -8,6 +8,7 @@
   --viewport-height: 100vh;
   --playfield-bg-top: #0f172a;
   --playfield-bg-bottom: #1e293b;
+  --playfield-border: #16233f;
 }
 
 * {
@@ -27,6 +28,10 @@ canvas {
   top: 0;
   left: 0;
   display: block;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1px var(--playfield-border),
+    0 0 0 2px rgba(22, 35, 63, 0.24);
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -53,14 +58,14 @@ canvas {
   bottom: max(0.85rem, env(safe-area-inset-bottom));
   z-index: 4;
   pointer-events: none;
-  padding: 0.14rem 0.28rem;
+  padding: 0.06rem 0.18rem;
   border: 0;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.42);
-  color: rgba(226, 232, 240, 0.68);
+  background: rgba(15, 23, 42, 0.22);
+  color: rgba(226, 232, 240, 0.52);
   font-family: "SFMono-Regular", "Cascadia Mono", "Consolas", "Menlo", monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.04em;
+  font-size: 0.44rem;
+  letter-spacing: 0.01em;
   box-shadow: none;
   backdrop-filter: none;
 }
@@ -74,6 +79,37 @@ canvas {
   z-index: 2;
   flex: 0 0 auto;
   max-width: 100%;
+}
+
+.brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  white-space: nowrap;
+  font-family: "SFMono-Regular", "Cascadia Mono", "Consolas", "Menlo", monospace;
+  font-size: 1.12rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.brand-chip {
+  min-width: 1.16em;
+  height: 1.16em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.16em;
+  color: #f8fafc;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.05)),
+    rgba(15, 23, 42, 0.9);
+  box-shadow:
+    0 0 8px rgba(255, 255, 255, 0.38),
+    0 0 18px rgba(255, 255, 255, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  text-shadow:
+    0 0 6px rgba(255, 255, 255, 0.72),
+    0 0 14px rgba(255, 255, 255, 0.26);
 }
 
 .pause-logo-button {
@@ -622,8 +658,9 @@ canvas {
 }
 
 @media (max-width: 720px) {
-  .brand-logo {
-    width: 102px;
+  .brand-wordmark {
+    gap: 0.16rem;
+    font-size: 0.96rem;
   }
 
   .top-chrome {
@@ -658,7 +695,7 @@ canvas {
   }
 
   .version-badge {
-    font-size: 0.72rem;
+    font-size: 0.4rem;
   }
 
   .leaderboard-form-row {
@@ -696,8 +733,9 @@ canvas {
     gap: 0.7rem;
   }
 
-  .brand-logo {
-    width: 88px;
+  .brand-wordmark {
+    gap: 0.14rem;
+    font-size: 0.82rem;
   }
 
   .panel {
@@ -732,8 +770,9 @@ canvas {
     gap: 0.55rem;
   }
 
-  .brand-logo {
-    width: 74px;
+  .brand-wordmark {
+    gap: 0.1rem;
+    font-size: 0.68rem;
   }
 
   .panel {

@@ -38,7 +38,8 @@ const CANVAS_EDGE_MARGIN = 12;
 const GRID_COLUMNS = 8;
 const GRID_ROWS = 26;
 const BRICK_ROW_COUNT = 5;
-const BRICK_START_ROW = 1;
+const BRICK_START_ROW = 2;
+const PLAYFIELD_INSET = 4;
 
 function formatVersionFromHistoryEntry(entryNumber) {
   const major = Math.floor(entryNumber / 100);
@@ -68,6 +69,8 @@ if (versionBadgeElement) {
 const audioState = {
   context: null,
   masterGain: null,
+  unlockPromise: null,
+  primed: false,
   enabled: typeof window.AudioContext === "function" || typeof window.webkitAudioContext === "function",
   lastPlayedAt: {},
 };
@@ -120,7 +123,7 @@ const ball = {
 };
 
 const brickConfig = {
-  gap: 2,
+  gap: 3,
   topOffset: 0,
   sidePadding: 0,
   height: 22,
@@ -154,23 +157,63 @@ function ensureAudioContext() {
   return audioState.context;
 }
 
+function primeAudioContext(audioContext) {
+  if (!audioContext || !audioState.masterGain || audioState.primed) {
+    return;
+  }
+
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+  oscillator.connect(gainNode);
+  gainNode.connect(audioState.masterGain);
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.01);
+  audioState.primed = true;
+}
+
 function unlockAudio() {
   const audioContext = ensureAudioContext();
 
-  if (audioContext && audioContext.state === "suspended") {
-    void audioContext.resume();
+  if (!audioContext) {
+    return Promise.resolve(null);
   }
+
+  if (audioContext.state === "running") {
+    primeAudioContext(audioContext);
+    return Promise.resolve(audioContext);
+  }
+
+  if (!audioState.unlockPromise) {
+    audioState.unlockPromise = audioContext
+      .resume()
+      .then(() => {
+        primeAudioContext(audioContext);
+        return audioContext;
+      })
+      .catch((error) => {
+        console.warn("Nie udalo sie odblokowac audio.", error);
+        return null;
+      })
+      .finally(() => {
+        audioState.unlockPromise = null;
+      });
+  }
+
+  return audioState.unlockPromise;
 }
 
 function tryUnlockAudioFromGesture() {
-  unlockAudio();
-
-  if (audioState.context && audioState.context.state === "running") {
-    window.removeEventListener("pointerdown", tryUnlockAudioFromGesture, true);
-    window.removeEventListener("touchstart", tryUnlockAudioFromGesture, true);
-    window.removeEventListener("click", tryUnlockAudioFromGesture, true);
-    window.removeEventListener("keydown", tryUnlockAudioFromGesture, true);
-  }
+  void unlockAudio().then((audioContext) => {
+    if (audioContext && audioContext.state === "running") {
+      window.removeEventListener("pointerdown", tryUnlockAudioFromGesture, true);
+      window.removeEventListener("touchstart", tryUnlockAudioFromGesture, true);
+      window.removeEventListener("click", tryUnlockAudioFromGesture, true);
+      window.removeEventListener("keydown", tryUnlockAudioFromGesture, true);
+    }
+  });
 }
 
 function canPlayAudio(name, minInterval = 0.04) {
@@ -229,14 +272,11 @@ function playSound(name) {
   }
 
   if (audioContext.state !== "running") {
-    void audioContext
-      .resume()
-      .then(() => {
+    void unlockAudio().then((unlockedAudioContext) => {
+      if (unlockedAudioContext && unlockedAudioContext.state === "running") {
         playSound(name);
-      })
-      .catch((error) => {
-        console.warn("Nie udalo sie odblokowac audio.", error);
-      });
+      }
+    });
     return;
   }
 
@@ -347,11 +387,11 @@ function getBrickColumns() {
 }
 
 function getTileWidth() {
-  return canvas.width / GRID_COLUMNS;
+  return getPlayfieldWidth() / GRID_COLUMNS;
 }
 
 function getTileHeight() {
-  return canvas.height / GRID_ROWS;
+  return getPlayfieldHeight() / GRID_ROWS;
 }
 
 function getCssPixelValue(variableName, fallback = 0) {
@@ -416,11 +456,31 @@ function getLayoutWallTiles() {
 }
 
 function getPlayfieldTopBoundary() {
-  return 0;
+  return PLAYFIELD_INSET;
+}
+
+function getPlayfieldLeftBoundary() {
+  return PLAYFIELD_INSET;
+}
+
+function getPlayfieldRightBoundary() {
+  return Math.max(PLAYFIELD_INSET, canvas.width - PLAYFIELD_INSET);
+}
+
+function getPlayfieldBottomBoundary() {
+  return Math.max(PLAYFIELD_INSET, canvas.height - PLAYFIELD_INSET);
+}
+
+function getPlayfieldWidth() {
+  return Math.max(0, getPlayfieldRightBoundary() - getPlayfieldLeftBoundary());
+}
+
+function getPlayfieldHeight() {
+  return Math.max(0, getPlayfieldBottomBoundary() - getPlayfieldTopBoundary());
 }
 
 function getBrickTopOffset() {
-  return getTileHeight() * BRICK_START_ROW;
+  return getPlayfieldTopBoundary() + getTileHeight() * BRICK_START_ROW;
 }
 
 const bonusCatalog = {
@@ -1142,15 +1202,21 @@ function resizeCanvas() {
   paddle.y = getPaddleY();
   paddle.baseWidth = getBasePaddleWidth();
   ball.radius = getBallRadius();
-  ball.baseSpeed = getTileHeight() * 13.75;
+  ball.baseSpeed = getTileHeight() * 12.375;
   syncPaddleWidth();
   paddle.velocityX = 0;
 
   if (ball.attached) {
     attachBallToPaddle(ball.paddleOffsetX, ball.stickyAttachment);
   } else {
-    ball.x = Math.min(Math.max(ball.x, ball.radius), canvas.width - ball.radius);
-    ball.y = Math.min(Math.max(ball.y, ball.radius), canvas.height - ball.radius);
+    ball.x = Math.min(
+      Math.max(ball.x, getPlayfieldLeftBoundary() + ball.radius),
+      getPlayfieldRightBoundary() - ball.radius
+    );
+    ball.y = Math.min(
+      Math.max(ball.y, getPlayfieldTopBoundary() + ball.radius),
+      getPlayfieldBottomBoundary() - ball.radius
+    );
     syncBallSpeedWithBaseSpeed(previousBaseSpeed);
   }
 }
@@ -1265,7 +1331,7 @@ function layoutBricks() {
   for (const brick of bricks) {
     brick.width = brickWidth;
     brick.height = brickHeight;
-    brick.x = brick.column * tileWidth + inset;
+    brick.x = getPlayfieldLeftBoundary() + brick.column * tileWidth + inset;
     brick.y = topOffset + (brick.row - BRICK_START_ROW) * tileHeight + inset;
   }
 }
@@ -1293,7 +1359,7 @@ function getBasePaddleWidth() {
 }
 
 function getPaddleY() {
-  return canvas.height - getTileHeight();
+  return getPlayfieldBottomBoundary() - getTileHeight();
 }
 
 function getBallRadius() {
@@ -1332,7 +1398,7 @@ function getSmallDeviceBallSpeedFactor() {
   const shortestSide = Math.min(canvas.width, canvas.height);
   const normalizedSide = Math.max(320, Math.min(960, shortestSide));
 
-  return 0.56 + (normalizedSide - 320) / (960 - 320) * 0.36;
+  return 0.68 + (normalizedSide - 320) / (960 - 320) * 0.28;
 }
 
 function getCurrentBallBaseSpeed() {
@@ -1381,15 +1447,17 @@ function advanceToNextLevel() {
 }
 
 function syncPaddleWidth() {
-  const previousCenter = paddle.x + paddle.width / 2 || canvas.width / 2;
+  const playfieldLeft = getPlayfieldLeftBoundary();
+  const playfieldWidth = getPlayfieldWidth();
+  const previousCenter = paddle.x + paddle.width / 2 || playfieldLeft + playfieldWidth / 2;
   const widenedWidth = Math.min(
     paddle.baseWidth * paddleSizeLevels[effects.paddleSizeLevel],
-    canvas.width * 0.62
+    playfieldWidth * 0.62
   );
   paddle.width = Math.max(getTileWidth() * paddleSizeLevels[0], widenedWidth);
   paddle.x = Math.max(
-    0,
-    Math.min(canvas.width - paddle.width, previousCenter - paddle.width / 2)
+    playfieldLeft,
+    Math.min(getPlayfieldRightBoundary() - paddle.width, previousCenter - paddle.width / 2)
   );
 
   if (ball.attached) {
@@ -1481,7 +1549,7 @@ function resetRound() {
   game.paused = false;
   paddle.baseWidth = getBasePaddleWidth();
   syncPaddleWidth();
-  paddle.x = (canvas.width - paddle.width) / 2;
+  paddle.x = getPlayfieldLeftBoundary() + (getPlayfieldWidth() - paddle.width) / 2;
   paddle.y = getPaddleY();
   paddle.velocityX = 0;
   lastPointerMoveTime = 0;
@@ -1519,7 +1587,10 @@ function movePaddle(deltaSeconds) {
   const direction = (controls.right ? 1 : 0) - (controls.left ? 1 : 0);
   const previousX = paddle.x;
   paddle.x += direction * paddle.speed * deltaSeconds;
-  paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, paddle.x));
+  paddle.x = Math.max(
+    getPlayfieldLeftBoundary(),
+    Math.min(getPlayfieldRightBoundary() - paddle.width, paddle.x)
+  );
   paddle.velocityX =
     deltaSeconds > 0 ? (paddle.x - previousX) / deltaSeconds : paddle.velocityX;
 
@@ -1587,14 +1658,16 @@ function bounceOffPaddle() {
 
 function bounceOffWalls() {
   const topBoundary = getPlayfieldTopBoundary();
+  const leftBoundary = getPlayfieldLeftBoundary();
+  const rightBoundary = getPlayfieldRightBoundary();
 
-  if (ball.x + ball.radius >= canvas.width) {
-    ball.x = canvas.width - ball.radius;
+  if (ball.x + ball.radius >= rightBoundary) {
+    ball.x = rightBoundary - ball.radius;
     ball.velocityX *= -1;
     ball.spin *= 0.92;
     playSound("paddleHit");
-  } else if (ball.x - ball.radius <= 0) {
-    ball.x = ball.radius;
+  } else if (ball.x - ball.radius <= leftBoundary) {
+    ball.x = leftBoundary + ball.radius;
     ball.velocityX *= -1;
     ball.spin *= 0.92;
     playSound("paddleHit");
@@ -1883,7 +1956,7 @@ function updateFallingBonuses(deltaSeconds) {
       continue;
     }
 
-    if (bonus.y - bonus.size / 2 > canvas.height) {
+    if (bonus.y - bonus.size / 2 > getPlayfieldBottomBoundary()) {
       fallingBonuses.splice(index, 1);
 
       if (game.pendingLevelAdvance && fallingBonuses.length === 0) {
@@ -1965,7 +2038,7 @@ function updateBall(deltaSeconds) {
   bounceOffPaddle();
   bounceOffBricks(previousX, previousY);
 
-  if (ball.y - ball.radius > canvas.height) {
+  if (ball.y - ball.radius > getPlayfieldBottomBoundary()) {
     loseLife();
     return;
   }
@@ -2788,7 +2861,10 @@ function handlePointerMove(event) {
   const pointerClientX = "touches" in event ? event.touches[0].clientX : event.clientX;
   const pointerX = pointerClientX - canvas.getBoundingClientRect().left;
   paddle.x = pointerX - paddle.width / 2;
-  paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, paddle.x));
+  paddle.x = Math.max(
+    getPlayfieldLeftBoundary(),
+    Math.min(getPlayfieldRightBoundary() - paddle.width, paddle.x)
+  );
   const currentTime = typeof event.timeStamp === "number" ? event.timeStamp : 0;
   const elapsedMs = lastPointerMoveTime
     ? Math.max(currentTime - lastPointerMoveTime, 1)
@@ -3036,9 +3112,11 @@ startOverlayButton.addEventListener("click", () => {
   handleAction();
 });
 
-pauseToggleButton.addEventListener("click", () => {
-  togglePause();
-});
+if (pauseToggleButton) {
+  pauseToggleButton.addEventListener("click", () => {
+    togglePause();
+  });
+}
 
 let lastTimestamp = performance.now();
 

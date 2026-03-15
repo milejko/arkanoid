@@ -182,3 +182,13 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 175. `porzadkujemy numeracje historii po fixie audio`
 176. `2 fixy: blur na stronie robi pauze; gdy ostatni kafel jest zbity i jeszcze spada bonus, pilka moze dalej leciec i utrata zycia / game over dziala normalnie`
 177. `badge wersji malutki, bez obramowki, ale zawierajacy date i godzine ostatniej zmiany`
+178. `4 fixy: probujemy przywrocic dzwieki przez mocniejsze odblokowanie i priming audio; badge wersji jeszcze mniejszy; nowe logo to nowoczesny napis Arkanoid z kwadracikow i bez pauzy po kliknieciu; startowa predkosc na malych ekranach nadal zalezy od rozmiaru, ale jest wyzsza niz w poprzedniej wersji`
+179. `2 fixy: delikatna jasniejsza obwodka wokol kwadratowej planszy gry; startowa predkosc pilki mniejsza o 10%`
+180. `3 fixy: plansza gry ma delikatnie zaokraglone rogi; kafle startuja od trzeciego rzedu; rakietka wisi w przedostatnim rzedzie`
+181. `2 fixy: kafle maja odrobine wiekszy padding; obramowanie planszy ma kolor w skali tla, ale ok. 20% jasniejszy`
+182. `2 fixy: dodajemy dekoracyjny wewnetrzny padding w obramowaniu kanwy; obramowanie planszy jest jeszcze odrobine jasniejsze`
+183. `fix: zwiekszamy dekoracyjny wewnetrzny padding w obramowaniu kanwy`
+184. `fix: dekoracyjny wewnetrzny padding planszy jest teraz rysowany bezposrednio na tle kanwy, zeby byl faktycznie widoczny`
+185. `fix: rezygnujemy z udawanego efektu; prawdziwe pole gry jest mniejsze o 4px z kazdej strony wewnatrz kanwy`
+186. `2 fixy: zostawiamy tylko zewnetrzna obwodke planszy bez wewnetrznej widocznej ramki; rakietka wraca na dol planszy`
+187. `fix: logo Arkanoid jest odrobine wieksze i ma spokojny bialy blask zamiast teczowego efektu`
