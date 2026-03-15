@@ -194,3 +194,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 187. `fix: logo Arkanoid jest odrobine wieksze i ma spokojny bialy blask zamiast teczowego efektu`
 188. `fix: kafle startuja od piatego rzedu siatki`
 189. `fix: cofamy start kafli na drugi rzad siatki`
+190. `2 fixy: HUD i plansza maja ten sam kolor obwodki oraz ten sam border-radius; wzmacniamy odblokowanie Web Audio pod iPhone Safari przez cichy buffer source i dodatkowe gesty end/up`

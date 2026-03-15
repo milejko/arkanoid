@@ -162,6 +162,16 @@ function primeAudioContext(audioContext) {
     return;
   }
 
+  const silentBuffer = audioContext.createBuffer(1, 1, Math.max(22050, audioContext.sampleRate || 22050));
+  const bufferSource = audioContext.createBufferSource();
+  const bufferGain = audioContext.createGain();
+  bufferSource.buffer = silentBuffer;
+  bufferGain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+  bufferSource.connect(bufferGain);
+  bufferGain.connect(audioState.masterGain);
+  bufferSource.start(audioContext.currentTime);
+  bufferSource.stop(audioContext.currentTime + 0.001);
+
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
   oscillator.type = "sine";
@@ -209,7 +219,9 @@ function tryUnlockAudioFromGesture() {
   void unlockAudio().then((audioContext) => {
     if (audioContext && audioContext.state === "running") {
       window.removeEventListener("pointerdown", tryUnlockAudioFromGesture, true);
+      window.removeEventListener("pointerup", tryUnlockAudioFromGesture, true);
       window.removeEventListener("touchstart", tryUnlockAudioFromGesture, true);
+      window.removeEventListener("touchend", tryUnlockAudioFromGesture, true);
       window.removeEventListener("click", tryUnlockAudioFromGesture, true);
       window.removeEventListener("keydown", tryUnlockAudioFromGesture, true);
     }
@@ -269,6 +281,10 @@ function playSound(name) {
 
   if (!audioContext) {
     return;
+  }
+
+  if (!audioState.primed && audioContext.state === "running") {
+    primeAudioContext(audioContext);
   }
 
   if (audioContext.state !== "running") {
@@ -3056,7 +3072,9 @@ window.addEventListener("keyup", (event) => {
 
 window.addEventListener("mousemove", handlePointerMove);
 window.addEventListener("pointerdown", tryUnlockAudioFromGesture, true);
+window.addEventListener("pointerup", tryUnlockAudioFromGesture, true);
 window.addEventListener("touchstart", tryUnlockAudioFromGesture, true);
+window.addEventListener("touchend", tryUnlockAudioFromGesture, true);
 window.addEventListener("click", tryUnlockAudioFromGesture, true);
 window.addEventListener("keydown", tryUnlockAudioFromGesture, true);
 window.addEventListener(

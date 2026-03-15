@@ -9,6 +9,7 @@
   --playfield-bg-top: #0f172a;
   --playfield-bg-bottom: #1e293b;
   --playfield-border: #16233f;
+  --surface-border-radius: 10px;
 }
 
 * {
@@ -28,7 +29,7 @@ canvas {
   top: 0;
   left: 0;
   display: block;
-  border-radius: 10px;
+  border-radius: var(--surface-border-radius);
   box-shadow:
     0 0 0 1px var(--playfield-border),
     0 0 0 2px rgba(22, 35, 63, 0.24);
@@ -315,8 +316,8 @@ canvas {
 
 .panel {
   padding: 0.75rem 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 14px;
+  border: 1px solid var(--playfield-border);
+  border-radius: var(--surface-border-radius);
   background: rgba(15, 23, 42, 0.72);
   backdrop-filter: blur(12px);
   box-shadow: 0 20px 45px rgba(15, 23, 42, 0.28);
