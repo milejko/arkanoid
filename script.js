@@ -54,9 +54,15 @@ const APP_VERSION =
   typeof window.APP_VERSION === "string" && window.APP_VERSION
     ? window.APP_VERSION
     : formatVersionFromHistoryEntry(HISTORY_ENTRY_NUMBER);
+const APP_LAST_UPDATED =
+  typeof window.APP_LAST_UPDATED === "string" && window.APP_LAST_UPDATED
+    ? window.APP_LAST_UPDATED
+    : "";
 
 if (versionBadgeElement) {
-  versionBadgeElement.textContent = APP_VERSION;
+  versionBadgeElement.textContent = APP_LAST_UPDATED
+    ? `${APP_VERSION} · ${APP_LAST_UPDATED}`
+    : APP_VERSION;
 }
 
 const audioState = {
@@ -114,7 +120,7 @@ const ball = {
 };
 
 const brickConfig = {
-  gap: 0,
+  gap: 2,
   topOffset: 0,
   sidePadding: 0,
   height: 22,
@@ -153,6 +159,17 @@ function unlockAudio() {
 
   if (audioContext && audioContext.state === "suspended") {
     void audioContext.resume();
+  }
+}
+
+function tryUnlockAudioFromGesture() {
+  unlockAudio();
+
+  if (audioState.context && audioState.context.state === "running") {
+    window.removeEventListener("pointerdown", tryUnlockAudioFromGesture, true);
+    window.removeEventListener("touchstart", tryUnlockAudioFromGesture, true);
+    window.removeEventListener("click", tryUnlockAudioFromGesture, true);
+    window.removeEventListener("keydown", tryUnlockAudioFromGesture, true);
   }
 }
 
@@ -207,7 +224,19 @@ function playTone(startTime, {
 function playSound(name) {
   const audioContext = ensureAudioContext();
 
-  if (!audioContext || audioContext.state !== "running") {
+  if (!audioContext) {
+    return;
+  }
+
+  if (audioContext.state !== "running") {
+    void audioContext
+      .resume()
+      .then(() => {
+        playSound(name);
+      })
+      .catch((error) => {
+        console.warn("Nie udalo sie odblokowac audio.", error);
+      });
     return;
   }
 
@@ -1109,7 +1138,7 @@ function resizeCanvas() {
   brickConfig.height = getTileHeight();
   layoutBricks();
   paddle.height = getTileHeight() * 0.5;
-  paddle.speed = getTileWidth() * 19;
+  paddle.speed = getTileWidth() * 14.25;
   paddle.y = getPaddleY();
   paddle.baseWidth = getBasePaddleWidth();
   ball.radius = getBallRadius();
@@ -1225,18 +1254,19 @@ function layoutBricks() {
     return;
   }
 
-  const columns = getBrickColumns();
   const topOffset = getBrickTopOffset();
-  const totalGapWidth = brickConfig.gap * (columns - 1);
-  const availableWidth = Math.max(0, canvas.width - brickConfig.sidePadding * 2);
-  const brickWidth = (availableWidth - totalGapWidth) / columns;
-  const startX = brickConfig.sidePadding;
+  const tileWidth = getTileWidth();
+  const tileHeight = getTileHeight();
+  const gap = Math.max(0, Math.min(brickConfig.gap, tileWidth - 2, tileHeight - 2));
+  const inset = gap / 2;
+  const brickWidth = Math.max(2, tileWidth - gap);
+  const brickHeight = Math.max(2, tileHeight - gap);
 
   for (const brick of bricks) {
     brick.width = brickWidth;
-    brick.height = brickConfig.height;
-    brick.x = startX + brick.column * (brickWidth + brickConfig.gap);
-    brick.y = topOffset + (brick.row - BRICK_START_ROW) * (brickConfig.height + brickConfig.gap);
+    brick.height = brickHeight;
+    brick.x = brick.column * tileWidth + inset;
+    brick.y = topOffset + (brick.row - BRICK_START_ROW) * tileHeight + inset;
   }
 }
 
@@ -1562,19 +1592,19 @@ function bounceOffWalls() {
     ball.x = canvas.width - ball.radius;
     ball.velocityX *= -1;
     ball.spin *= 0.92;
-    playSound("wallHit");
+    playSound("paddleHit");
   } else if (ball.x - ball.radius <= 0) {
     ball.x = ball.radius;
     ball.velocityX *= -1;
     ball.spin *= 0.92;
-    playSound("wallHit");
+    playSound("paddleHit");
   }
 
   if (ball.y - ball.radius <= topBoundary) {
     ball.y = topBoundary + ball.radius;
     ball.velocityY *= -1;
     ball.spin *= 0.96;
-    playSound("wallHit");
+    playSound("paddleHit");
   }
 }
 
@@ -1619,10 +1649,10 @@ function hitBrick(brick, canDestroyWalls = false) {
   updateHud();
 
   if (!hasRemainingDestructibleBricks()) {
-    game.running = false;
     game.pendingLevelAdvance = fallingBonuses.length > 0;
 
     if (!game.pendingLevelAdvance) {
+      game.running = false;
       advanceToNextLevel();
     }
 
@@ -1695,6 +1725,7 @@ function loseLife() {
   game.lives -= 1;
   fallingBonuses = [];
   projectiles = [];
+  game.pendingLevelAdvance = false;
   clearEffects();
   updateHud();
 
@@ -2948,6 +2979,10 @@ window.addEventListener("keyup", (event) => {
 });
 
 window.addEventListener("mousemove", handlePointerMove);
+window.addEventListener("pointerdown", tryUnlockAudioFromGesture, true);
+window.addEventListener("touchstart", tryUnlockAudioFromGesture, true);
+window.addEventListener("click", tryUnlockAudioFromGesture, true);
+window.addEventListener("keydown", tryUnlockAudioFromGesture, true);
 window.addEventListener(
   "touchmove",
   (event) => {
@@ -2970,6 +3005,14 @@ canvas.addEventListener("dragstart", preventCanvasDefault);
 canvas.addEventListener("selectstart", preventCanvasDefault);
 window.addEventListener("touchend", handleBelowCanvasAction, { passive: false });
 window.addEventListener("click", handleBelowCanvasAction);
+window.addEventListener("blur", () => {
+  pauseGame();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    pauseGame();
+  }
+});
 window.addEventListener("resize", resizeCanvas);
 
 playerNameInput.addEventListener("input", () => {

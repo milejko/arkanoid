@@ -175,3 +175,10 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 169. `fix: blokujemy dragstart/selectstart kanwy, bo po zaznaczaniu gra wygladala jakby znikala`
 170. `fix: mocniej blokujemy domyslne akcje touch/pointer/contextmenu na kanwie, bo poprzednia blokada nie wystarczyla`
 171. `fix: tlo samej kanwy tez jest jednolite i takie samo jak tlo body`
+172. `sterowanie klawiszami jest teraz za szybkie, zwolnijmy o 25%`
+173. `fix: przywracamy sfx przez globalne odblokowanie audio na pierwszym geście uzytkownika`
+174. `odbicie od scian powinno dawac ten sam dzwiek co odbicie od rakietki`
+174. `fix: playSound sam wznawia AudioContext i dopiero potem odtwarza sfx`
+175. `porzadkujemy numeracje historii po fixie audio`
+176. `2 fixy: blur na stronie robi pauze; gdy ostatni kafel jest zbity i jeszcze spada bonus, pilka moze dalej leciec i utrata zycia / game over dziala normalnie`
+177. `badge wersji malutki, bez obramowki, ale zawierajacy date i godzine ostatniej zmiany`
