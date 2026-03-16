@@ -216,3 +216,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 209. `porzadkujemy kafle specjalne: od poziomow 2/4/6 mamy stale po 1 sztuce ceglanego/betonowego/krysztalowego z bonusami +1 zycie / fireball / super-armata; znikaja negatywne super-bonusy utrata zycia i ping-pong`
 210. `2 poprawki balansu: super-armata z krysztalu trwa 15 sekund; sciany layoutu zaczynaja pojawiac sie dopiero od poziomu 5`
 211. `fix: sciany dostaja wiecej roznych wzorow w cyklu poziomow 5-12 zamiast prostego dokladania jednego ukladu`
+212. `fix: dopracowujemy wzory scian, zeby byly bardziej charakterystyczne - np. brama, filary, klepsydra i zygzak`
