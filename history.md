@@ -223,3 +223,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 216. `fix: betonowy kafel dostaje neutralnie szare cieniowanie bez fioletowej poswiaty`
 217. `fix: sciany dostaja 11 roznych ukladow dla poziomow 5-15, a od poziomu 5 wystepuja juz zawsze i tylko zapetlaja wzor`
 218. `fix: wszystkie wzory scian w cyklu od poziomu 5 robimy lustrzanie symetryczne`
+219. `tuning: zmniejszamy symetryczne wzory scian przypisane do poziomow 8 i 11`
