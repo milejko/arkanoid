@@ -71,7 +71,7 @@ Cel jest prosty: odbijaj piłkę, niszcz cegły i nie pozwól jej spaść pod pa
 
 Standardowe bonusy są ukryte losowo w zwykłych kaflach i wypadają dopiero po ich zniszczeniu. W grze występują zarówno bonusy pozytywne, jak i negatywne. Na każdym poziomie dostępny jest pełny zestaw standardowych bonusów, ale bez **+1 życia** i **super piłki**. Każdy standardowy bonus pojawia się na planszy dokładnie raz i ma przypisany dokładnie jeden zwykły kafel.
 
-Na wyższych poziomach część zwykłych cegieł zastępowana jest przez trzy klasy trwałych bloków. Od poziomu `2` pojawia się zawsze dokładnie jeden **ceglany** kafel z bonusem `+1 życie`. Od poziomu `4` dochodzi zawsze dokładnie jeden **betonowy** kafel z bonusem `fireball`. Od poziomu `6` dochodzi zawsze dokładnie jeden **kryształowy** kafel z bonusem **super-armaty**. Super-armata trwa do utraty życia albo do końca bieżącego poziomu, a jej czerwone strzały rozwalają ściany oraz każdy niszczalny kafel jednym trafieniem. Ściany layoutu działają w cyklu `12` poziomów i dochodzą kolejno w pozycjach `(2,9)`, `(7,9)`, `(4,10)`, `(5,10)`, `(2,11)` oraz `(7,11)`, po czym cały wzór powtarza się od nowa. Aktywna **super piłka / fireball** potrafi zniszczyć również te jasnoszare ściany.
+Na wyższych poziomach część zwykłych cegieł zastępowana jest przez trzy klasy trwałych bloków. Od poziomu `2` pojawia się zawsze dokładnie jeden **ceglany** kafel z bonusem `+1 życie`. Od poziomu `4` dochodzi zawsze dokładnie jeden **betonowy** kafel z bonusem `fireball`. Od poziomu `6` dochodzi zawsze dokładnie jeden **kryształowy** kafel z bonusem **super-armaty**. Super-armata trwa `15` sekund, a jej czerwone strzały rozwalają ściany oraz każdy niszczalny kafel jednym trafieniem. Ściany layoutu działają w cyklu `12` poziomów, ale pierwszy raz pojawiają się dopiero od poziomu `5`, a potem dochodzą kolejno w pozycjach `(2,9)`, `(7,9)`, `(4,10)`, `(5,10)`, `(2,11)` oraz `(7,11)`. Aktywna **super piłka / fireball** potrafi zniszczyć również te jasnoszare ściany.
 
 ### Pozytywne
 
@@ -80,7 +80,7 @@ Na wyższych poziomach część zwykłych cegieł zastępowana jest przez trzy k
 - **Działo** — paletka może strzelać pociskami i zachowuje tę możliwość także po wejściu na kolejny poziom.
 - **+1 życie** — zwiększa liczbę żyć, maksymalnie do 3.
 - **Fireball** — przez 5 sekund piłka przebija cegły i niszczy nawet jasnoszare ściany layoutu.
-- **Super-armata** — trwa do utraty życia albo końca bieżącego poziomu i daje czerwone strzały, które niszczą ściany oraz każdy niszczalny kafel jednym trafieniem.
+- **Super-armata** — przez `15` sekund daje czerwone strzały, które niszczą ściany oraz każdy niszczalny kafel jednym trafieniem.
 - **Spowolnienie piłki** — tymczasowo zmniejsza prędkość aż o połowę i daje mocniejsze smużenie.
 
 ### Negatywne

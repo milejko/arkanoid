@@ -383,9 +383,10 @@ const wallTileSequence = [
 ];
 
 function getLayoutWallTiles() {
-  const levelInCycle = ((Math.max(1, game.level) - 1) % 12) + 1;
+  const cycleOffsetLevel = Math.max(1, game.level) - 4;
+  const levelInCycle = ((cycleOffsetLevel - 1 + 12) % 12) + 1;
 
-  if (levelInCycle < 2) {
+  if (game.level < 5 || levelInCycle < 2) {
     return [];
   }
 
@@ -1036,6 +1037,7 @@ const effects = {
   shooterActive: false,
   superShooterActive: false,
   superShooterKeepsShooter: false,
+  superShooterTimer: 0,
   superBallActive: false,
   superBallTimer: 0,
   speedModifier: 0,
@@ -1373,6 +1375,7 @@ function clearEffects({ preservePaddleSizeLevel = false, preserveShooter = false
   effects.shooterActive = keepShooterAfterClear;
   effects.superShooterActive = false;
   effects.superShooterKeepsShooter = false;
+  effects.superShooterTimer = 0;
   effects.superBallActive = false;
   effects.superBallTimer = 0;
   effects.speedModifier = 0;
@@ -1730,6 +1733,7 @@ function activateBonus(type) {
     effects.superShooterKeepsShooter = effects.superShooterKeepsShooter || effects.shooterActive;
     effects.shooterActive = true;
     effects.superShooterActive = true;
+    effects.superShooterTimer = 15;
   } else if (type === "speedDouble") {
     const previousSpeedFactor = 1 + effects.speedModifier;
     effects.speedModifier = -0.5;
@@ -1761,6 +1765,16 @@ function updateEffects(deltaSeconds) {
 
   if (effects.shotCooldown > 0) {
     effects.shotCooldown = Math.max(0, effects.shotCooldown - deltaSeconds);
+  }
+
+  if (effects.superShooterActive) {
+    effects.superShooterTimer = Math.max(0, effects.superShooterTimer - deltaSeconds);
+    if (effects.superShooterTimer === 0) {
+      effects.superShooterActive = false;
+      effects.shooterActive = effects.superShooterKeepsShooter;
+      effects.superShooterKeepsShooter = false;
+      hudChanged = true;
+    }
   }
 
   if (effects.stickyActive) {
