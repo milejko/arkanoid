@@ -55,13 +55,14 @@ Cel jest prosty: odbijaj piłkę, niszcz cegły i nie pozwól jej spaść pod pa
 
 - `←` / `A` — ruch paletki w lewo
 - `→` / `D` — ruch paletki w prawo
-- `Spacja` — start piłki / akcja / strzał
-- `P` — pauza
+- `Spacja` — akcja tylko w trakcie aktywnej rundy, np. strzał z działa albo wypuszczenie przyklejonej piłki
+- `Esc` — pauza
 
 ### Mysz i touch
 
 - ruch kursora lub palca steruje pozycją paletki,
-- kliknięcie / tap uruchamia akcję,
+- start gry, start planszy i wyjście z pauzy działają tylko z przycisków interfejsu,
+- klik / tap na planszy nie uruchamia już startu nowej rundy,
 - na ekranach mobilnych overlay tablicy wyników przewija się dotykiem.
 
 ## Bonusy

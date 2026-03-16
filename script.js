@@ -20,7 +20,6 @@ const scoreSubmitButton = document.getElementById("scoreSubmitButton");
 const leaderboardStartButton = document.getElementById("leaderboardStartButton");
 const pauseResumeButton = document.getElementById("pauseResumeButton");
 const startOverlayButton = document.getElementById("startOverlayButton");
-const pauseToggleButton = document.getElementById("pauseToggleButton");
 const versionBadgeElement = document.getElementById("versionBadge");
 
 const controls = {
@@ -915,15 +914,6 @@ function resumeGame() {
   renderPauseOverlay();
   renderStartOverlay();
   playSound("resume");
-}
-
-function togglePause() {
-  if (game.paused) {
-    resumeGame();
-    return;
-  }
-
-  pauseGame();
 }
 
 function showLeaderboard(mode) {
@@ -2822,7 +2812,7 @@ function handlePointerMove(event) {
   }
 }
 
-function handleAction() {
+function handleAction({ allowUiStart = false } = {}) {
   unlockAudio();
 
   if (isTextEntryActive()) {
@@ -2834,16 +2824,24 @@ function handleAction() {
   }
 
   if (leaderboardState.mode) {
-    startFromLeaderboard();
+    if (allowUiStart) {
+      startFromLeaderboard();
+    }
     return;
   }
 
   if (game.lives <= 0) {
-    resetGame();
+    if (allowUiStart) {
+      resetGame();
+    }
     return;
   }
 
   if (ball.attached) {
+    if (!allowUiStart && game.message) {
+      return;
+    }
+
     launchBall();
     return;
   }
@@ -2947,19 +2945,15 @@ window.addEventListener("keydown", (event) => {
     return;
   }
 
-  if (key === "p") {
-    if (!leaderboardState.mode && (game.running || game.paused)) {
+  if (key === "escape") {
+    if (!leaderboardState.mode && game.running && !game.paused) {
       event.preventDefault();
-      togglePause();
+      pauseGame();
     }
     return;
   }
 
   if (game.paused) {
-    return;
-  }
-
-  if (leaderboardState.mode && key !== " " && key !== "spacebar") {
     return;
   }
 
@@ -3050,14 +3044,8 @@ pauseResumeButton.addEventListener("click", () => {
 });
 
 startOverlayButton.addEventListener("click", () => {
-  handleAction();
+  handleAction({ allowUiStart: true });
 });
-
-if (pauseToggleButton) {
-  pauseToggleButton.addEventListener("click", () => {
-    togglePause();
-  });
-}
 
 let lastTimestamp = performance.now();
 
