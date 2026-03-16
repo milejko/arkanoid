@@ -373,25 +373,71 @@ function getCanvasMetrics() {
   };
 }
 
-const wallTileSequence = [
-  { row: 8, column: 1 },
-  { row: 8, column: 6 },
-  { row: 9, column: 3 },
-  { row: 9, column: 4 },
-  { row: 10, column: 1 },
-  { row: 10, column: 6 },
-];
+const wallLayoutsByCycleLevel = {
+  5: [
+    { row: 8, column: 1 },
+    { row: 8, column: 6 },
+  ],
+  6: [
+    { row: 8, column: 1 },
+    { row: 8, column: 6 },
+    { row: 9, column: 3 },
+    { row: 9, column: 4 },
+  ],
+  7: [
+    { row: 8, column: 1 },
+    { row: 8, column: 6 },
+    { row: 9, column: 1 },
+    { row: 9, column: 6 },
+  ],
+  8: [
+    { row: 8, column: 1 },
+    { row: 8, column: 6 },
+    { row: 9, column: 3 },
+    { row: 9, column: 4 },
+    { row: 10, column: 1 },
+    { row: 10, column: 6 },
+  ],
+  9: [
+    { row: 8, column: 3 },
+    { row: 8, column: 4 },
+    { row: 9, column: 2 },
+    { row: 9, column: 5 },
+  ],
+  10: [
+    { row: 8, column: 1 },
+    { row: 8, column: 6 },
+    { row: 9, column: 2 },
+    { row: 9, column: 5 },
+    { row: 10, column: 3 },
+    { row: 10, column: 4 },
+  ],
+  11: [
+    { row: 8, column: 2 },
+    { row: 8, column: 5 },
+    { row: 9, column: 1 },
+    { row: 9, column: 6 },
+    { row: 10, column: 2 },
+    { row: 10, column: 5 },
+  ],
+  12: [
+    { row: 8, column: 1 },
+    { row: 8, column: 6 },
+    { row: 9, column: 1 },
+    { row: 9, column: 3 },
+    { row: 9, column: 4 },
+    { row: 9, column: 6 },
+  ],
+};
 
 function getLayoutWallTiles() {
-  const cycleOffsetLevel = Math.max(1, game.level) - 4;
-  const levelInCycle = ((cycleOffsetLevel - 1 + 12) % 12) + 1;
+  const levelInCycle = ((Math.max(1, game.level) - 1) % 12) + 1;
 
-  if (game.level < 5 || levelInCycle < 2) {
+  if (game.level < 5) {
     return [];
   }
 
-  const wallCount = Math.min(Math.floor(levelInCycle / 2), wallTileSequence.length);
-  return wallTileSequence.slice(0, wallCount);
+  return wallLayoutsByCycleLevel[levelInCycle] || [];
 }
 
 function getPlayfieldTopBoundary() {
