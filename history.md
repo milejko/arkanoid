@@ -206,3 +206,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 199. `2 fixy: cegly wisza o jeden rzad nizej i zostawiaja nad soba dwa puste rzędy; layout scian przechodzi na 12-poziomowy cykl z pozycjami (2,9), (7,9), (4,10), (5,10), (2,11), (7,11)`
 200. `fix: zlapany bonus smierci nie moze juz zawiesic gry po wyczyszczeniu planszy; po loseLife przerywamy dalsza obsluge bonusow i przejscia poziomu w tej samej klatce`
 201. `fix: spowalniamy ruch paletki sterowanej klawiszami o 25%`
+202. `fix: jeszcze bardziej spowalniamy ruch paletki sterowanej klawiszami`
