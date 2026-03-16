@@ -458,8 +458,8 @@ const bonusCatalog = {
     color: "#f87171",
   },
   crystalCombo: {
-    label: "+1 życie + fireball",
-    symbol: "♥*",
+    label: "Super-armata",
+    symbol: "SA",
     color: "#67e8f9",
   },
   shrinkHalf: {
@@ -1045,6 +1045,8 @@ const effects = {
   stickyTimer: 0,
   shooterActive: false,
   shooterTimer: 0,
+  superShooterActive: false,
+  superShooterKeepsShooter: false,
   superBallActive: false,
   superBallTimer: 0,
   speedModifier: 0,
@@ -1397,13 +1399,19 @@ function syncPaddleWidth() {
 }
 
 function clearEffects({ preservePaddleSizeLevel = false, preserveShooter = false } = {}) {
+  const keepShooterAfterClear = preserveShooter
+    ? effects.shooterActive && (!effects.superShooterActive || effects.superShooterKeepsShooter)
+    : false;
+
   if (!preservePaddleSizeLevel) {
     effects.paddleSizeLevel = neutralLevelIndex;
   }
   effects.stickyActive = false;
   effects.stickyTimer = 0;
-  effects.shooterActive = preserveShooter ? effects.shooterActive : false;
+  effects.shooterActive = keepShooterAfterClear;
   effects.shooterTimer = 0;
+  effects.superShooterActive = false;
+  effects.superShooterKeepsShooter = false;
   effects.superBallActive = false;
   effects.superBallTimer = 0;
   effects.speedModifier = 0;
@@ -1610,7 +1618,7 @@ function bounceOffWalls() {
   }
 }
 
-function hitBrick(brick, canDestroyWalls = false) {
+function hitBrick(brick, { canDestroyWalls = false, instantDestroy = false } = {}) {
   if (!brick.alive) {
     return;
   }
@@ -1627,6 +1635,9 @@ function hitBrick(brick, canDestroyWalls = false) {
   }
 
   const previousBaseSpeed = getCurrentBallBaseSpeed();
+  if (instantDestroy) {
+    brick.hitPoints = 1;
+  }
   brick.hitPoints = Math.max(0, (brick.hitPoints || 1) - 1);
 
   if (brick.hitPoints > 0) {
@@ -1689,9 +1700,9 @@ function bounceOffBricks(previousX, previousY) {
       }
 
       if (brick.destructible === false) {
-        hitBrick(brick, true);
+        hitBrick(brick, { canDestroyWalls: true, instantDestroy: true });
       } else {
-        hitBrick(brick, true);
+        hitBrick(brick, { canDestroyWalls: true, instantDestroy: true });
       }
 
       if (!game.running || ball.attached) {
@@ -1759,6 +1770,9 @@ function activateBonus(type) {
   } else if (type === "shooter") {
     effects.shooterActive = true;
     effects.shooterTimer = 0;
+    if (effects.superShooterActive) {
+      effects.superShooterKeepsShooter = true;
+    }
   } else if (type === "extraLife") {
     game.lives = Math.min(3, game.lives + 1);
   } else if (type === "superBall") {
@@ -1778,9 +1792,10 @@ function activateBonus(type) {
     }
     effects.pingPongStacks += 1;
   } else if (type === "crystalCombo") {
-    game.lives = Math.min(3, game.lives + 1);
-    effects.superBallActive = true;
-    effects.superBallTimer = 5;
+    effects.superShooterKeepsShooter = effects.superShooterKeepsShooter || effects.shooterActive;
+    effects.shooterActive = true;
+    effects.superShooterActive = true;
+    effects.shooterTimer = 30;
   } else if (type === "speedDouble") {
     const previousSpeedFactor = 1 + effects.speedModifier;
     effects.speedModifier = -0.5;
@@ -1812,6 +1827,16 @@ function updateEffects(deltaSeconds) {
 
   if (effects.shotCooldown > 0) {
     effects.shotCooldown = Math.max(0, effects.shotCooldown - deltaSeconds);
+  }
+
+  if (effects.superShooterActive) {
+    effects.shooterTimer = Math.max(0, effects.shooterTimer - deltaSeconds);
+    if (effects.shooterTimer === 0) {
+      effects.superShooterActive = false;
+      effects.shooterActive = effects.superShooterKeepsShooter;
+      effects.superShooterKeepsShooter = false;
+      hudChanged = true;
+    }
   }
 
   if (effects.stickyActive) {
@@ -1928,7 +1953,10 @@ function updateProjectiles(deltaSeconds) {
         continue;
       }
 
-      hitBrick(brick);
+      hitBrick(brick, {
+        canDestroyWalls: projectile.canDestroyWalls === true,
+        instantDestroy: projectile.instantDestroy === true,
+      });
       projectiles.splice(index, 1);
       hit = true;
       break;
@@ -2005,12 +2033,18 @@ function drawPaddle() {
   );
   const isSticky = effects.stickyActive;
   const isShooter = effects.shooterActive;
+  const isSuperShooter = effects.superShooterActive;
 
   if (isSticky) {
     bodyGradient.addColorStop(0, "#ecfccb");
     bodyGradient.addColorStop(0.18, "#86efac");
     bodyGradient.addColorStop(0.62, "#22c55e");
     bodyGradient.addColorStop(1, "#166534");
+  } else if (isSuperShooter) {
+    bodyGradient.addColorStop(0, "#ffe4e6");
+    bodyGradient.addColorStop(0.18, "#fb7185");
+    bodyGradient.addColorStop(0.62, "#ef4444");
+    bodyGradient.addColorStop(1, "#7f1d1d");
   } else {
     bodyGradient.addColorStop(0, "#dcf9ff");
     bodyGradient.addColorStop(0.18, "#67e8f9");
@@ -2020,6 +2054,8 @@ function drawPaddle() {
 
   context.shadowColor = isSticky
     ? "rgba(74, 222, 128, 0.45)"
+    : isSuperShooter
+    ? "rgba(248, 113, 113, 0.45)"
     : "rgba(34, 211, 238, 0.45)";
   context.shadowBlur = 18;
   context.shadowOffsetY = 4;
@@ -2071,9 +2107,9 @@ function drawPaddle() {
     const cannonBaseX = paddle.x + paddle.width / 2 - cannonBaseWidth / 2;
     const cannonCoreX = paddle.x + paddle.width / 2 - cannonCoreWidth / 2;
 
-    context.fillStyle = "#cbd5e1";
+    context.fillStyle = isSuperShooter ? "#fecaca" : "#cbd5e1";
     context.fillRect(cannonBaseX, paddle.y - cannonBaseHeight, cannonBaseWidth, cannonBaseHeight);
-    context.fillStyle = "#38bdf8";
+    context.fillStyle = isSuperShooter ? "#ef4444" : "#38bdf8";
     context.fillRect(
       cannonCoreX,
       paddle.y - cannonBaseHeight - cannonCoreHeight * 0.85,
@@ -2342,27 +2378,22 @@ function drawBonusIcon(type, centerX, centerY, size, isPositive) {
     context.lineTo(size * 0.18, size * 0.18);
     context.stroke();
   } else if (type === "crystalCombo") {
+    context.fillStyle = "#fee2e2";
+    context.fillRect(-size * 0.28, size * 0.02, size * 0.56, size * 0.14);
+    context.fillStyle = "#ef4444";
+    context.fillRect(-size * 0.12, -size * 0.28, size * 0.24, size * 0.28);
+    context.fillStyle = "#fecaca";
+    context.fillRect(-size * 0.06, -size * 0.2, size * 0.12, size * 0.12);
+    context.strokeStyle = "#fff1f2";
     context.beginPath();
-    context.moveTo(-size * 0.18, size * 0.18);
-    context.bezierCurveTo(size * 0.04, 0, size * 0.12, -size * 0.14, 0, -size * 0.2);
-    context.bezierCurveTo(-size * 0.08, -size * 0.3, -size * 0.24, -size * 0.22, -size * 0.18, -size * 0.08);
-    context.bezierCurveTo(-size * 0.28, 0, -size * 0.26, size * 0.14, -size * 0.18, size * 0.18);
+    context.moveTo(0, -size * 0.42);
+    context.lineTo(-size * 0.08, -size * 0.24);
+    context.lineTo(size * 0.01, -size * 0.24);
+    context.lineTo(-size * 0.04, -size * 0.06);
+    context.lineTo(size * 0.12, -size * 0.28);
+    context.lineTo(size * 0.03, -size * 0.28);
     context.closePath();
     context.fill();
-    context.save();
-    context.translate(size * 0.14, -size * 0.02);
-    context.scale(0.68, 0.68);
-    context.fillStyle = "#ff5a1f";
-    context.beginPath();
-    context.moveTo(0, -size * 0.28);
-    context.bezierCurveTo(size * 0.16, -size * 0.22, size * 0.2, -size * 0.04, size * 0.12, size * 0.08);
-    context.bezierCurveTo(size * 0.22, 0, size * 0.26, size * 0.18, size * 0.08, size * 0.26);
-    context.bezierCurveTo(0, size * 0.18, -size * 0.02, size * 0.14, 0, size * 0.04);
-    context.bezierCurveTo(-size * 0.04, size * 0.16, -size * 0.2, size * 0.18, -size * 0.16, size * 0.02);
-    context.bezierCurveTo(-size * 0.22, -size * 0.04, -size * 0.16, -size * 0.18, 0, -size * 0.28);
-    context.closePath();
-    context.fill();
-    context.restore();
   } else if (type === "resetPaddle") {
     context.beginPath();
     context.moveTo(-size * 0.22, -size * 0.22);
@@ -2447,9 +2478,15 @@ function drawProjectiles() {
       projectile.x,
       projectile.y + projectile.height
     );
-    beam.addColorStop(0, "#f8fafc");
-    beam.addColorStop(0.5, "#67e8f9");
-    beam.addColorStop(1, "#0ea5e9");
+    if (projectile.instantDestroy) {
+      beam.addColorStop(0, "#fff1f2");
+      beam.addColorStop(0.5, "#ef4444");
+      beam.addColorStop(1, "#991b1b");
+    } else {
+      beam.addColorStop(0, "#f8fafc");
+      beam.addColorStop(0.5, "#67e8f9");
+      beam.addColorStop(1, "#0ea5e9");
+    }
     context.fillStyle = beam;
     context.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
   }
@@ -2857,6 +2894,8 @@ function handleAction({ allowUiStart = false } = {}) {
       x: paddle.x + paddle.width / 2 - getProjectileWidth() / 2,
       y: paddle.y - getProjectileHeight(),
       speed: getProjectileSpeed(),
+      canDestroyWalls: effects.superShooterActive,
+      instantDestroy: effects.superShooterActive,
     });
     effects.shotCooldown = 0.28;
     playSound("laser");
