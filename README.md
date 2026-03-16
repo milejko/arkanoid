@@ -2,6 +2,8 @@
 
 Nowoczesna, przeglądarkowa wariacja na temat klasycznego **Arkanoida**. Projekt jest napisany w czystym HTML, CSS i JavaScript, bez bundlera i bez frameworków. Gra działa jako pojedyncza strona, ma responsywny interfejs, system poziomów, bonusy, pauzę oraz tablicę wyników opartą o Google Sheets.
 
+Zagraj online: [https://milejko.github.io/arkanoid/](https://milejko.github.io/arkanoid/) — publiczna wersja gry dostępna w przeglądarce.
+
 ## Co to za projekt
 
 `Arkanoid` to lekka gra arcade uruchamiana bezpośrednio w przeglądarce. Gracz steruje paletką, odbija piłkę i czyści planszę z cegieł. Po zniszczeniu całej planszy przechodzi na kolejny poziom, a bazowa prędkość piłki rośnie.

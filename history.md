@@ -211,3 +211,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 204. `fix: jeszcze raz wyraznie spowalniamy ruch paletki sterowanej klawiszami`
 205. `fix: poprzednie zmiany predkosci klawiatury byly nadpisywane przy resize; wprowadzamy osobna stala speedu klawiatury oparta o kafle i realnie zwalniamy paletke`
 206. `2 fixy UX: pauza wlacza sie juz tylko przez blur albo ESC i wraca tylko z przycisku interfejsu; start gry i kolejnych plansz dziala tylko z przyciskow UI, nie ze spacji ani klikniecia`
+207. `docs: dodajemy na poczatku README link do publicznej wersji gry https://milejko.github.io/arkanoid/`
