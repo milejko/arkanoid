@@ -99,7 +99,7 @@ const paddle = {
   width: 140,
   baseWidth: 140,
   height: 18,
-  speed: 560,
+  speed: 420,
   x: 0,
   y: 0,
   velocityX: 0,

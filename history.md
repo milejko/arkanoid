@@ -208,3 +208,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 201. `fix: spowalniamy ruch paletki sterowanej klawiszami o 25%`
 202. `fix: jeszcze bardziej spowalniamy ruch paletki sterowanej klawiszami`
 203. `fix: usuwamy z repo wszystkie pozostalosci starej nazwy marki, lacznie z tytulem, README, historia i kluczem cache leaderboardu`
+204. `fix: jeszcze raz wyraznie spowalniamy ruch paletki sterowanej klawiszami`
