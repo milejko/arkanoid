@@ -447,16 +447,6 @@ const bonusCatalog = {
     symbol: "*",
     color: "#ef4444",
   },
-  suddenDeath: {
-    label: "Utrata życia",
-    symbol: "☠",
-    color: "#ef4444",
-  },
-  pingPong: {
-    label: "Piłka ping-pong",
-    symbol: "⊘",
-    color: "#f87171",
-  },
   crystalCombo: {
     label: "Super-armata",
     symbol: "SA",
@@ -481,8 +471,8 @@ const bonusCatalog = {
 
 const positiveBonusTypes = ["widen", "sticky", "shooter", "extraLife", "speedDouble", "superBall", "crystalCombo"];
 const standardNegativeBonusTypes = ["shrinkHalf", "speedTriple"];
-const negativeBonusTypes = [...standardNegativeBonusTypes, "suddenDeath", "pingPong"];
-const superBonusTypes = ["extraLife", "suddenDeath", "superBall", "pingPong", "crystalCombo"];
+const negativeBonusTypes = [...standardNegativeBonusTypes];
+const superBonusTypes = ["extraLife", "superBall", "crystalCombo"];
 const standardBonusTypes = ["widen", "sticky", "shooter", ...standardNegativeBonusTypes];
 
 let highScores = [];
@@ -1044,14 +1034,12 @@ const effects = {
   stickyActive: false,
   stickyTimer: 0,
   shooterActive: false,
-  shooterTimer: 0,
   superShooterActive: false,
   superShooterKeepsShooter: false,
   superBallActive: false,
   superBallTimer: 0,
   speedModifier: 0,
   speedTimer: 0,
-  pingPongStacks: 0,
   shotCooldown: 0,
 };
 
@@ -1059,30 +1047,6 @@ let bricks = [];
 let fallingBonuses = [];
 let projectiles = [];
 let lastPointerMoveTime = 0;
-
-function getDoublingBrickCount(startLevel, levelStep, initialCount) {
-  if (game.level < startLevel) {
-    return 0;
-  }
-
-  return initialCount * 2 ** Math.floor((game.level - startLevel) / levelStep);
-}
-
-function getBalancedBonusTypes(count, positiveType, negativeType) {
-  const types = [];
-  const positiveCount = Math.ceil(count / 2);
-  const negativeCount = Math.floor(count / 2);
-
-  for (let index = 0; index < positiveCount; index += 1) {
-    types.push(positiveType);
-  }
-
-  for (let index = 0; index < negativeCount; index += 1) {
-    types.push(negativeType);
-  }
-
-  return shuffleArray(types);
-}
 
 function setBrickMaterial(brick, material) {
   brick.material = material;
@@ -1181,11 +1145,11 @@ function createBricks() {
   const standardBonusIndices = shuffledIndices.slice(0, standardBonusCount);
   const durableCandidateIndices = shuffledIndices.slice(standardBonusCount);
   const durableSlotCount = durableCandidateIndices.length;
-  const crystalCount = Math.min(getDoublingBrickCount(4, 4, 1), durableSlotCount);
-  const remainingAfterCrystal = Math.max(0, durableSlotCount - crystalCount);
-  const concreteCount = Math.min(getDoublingBrickCount(3, 3, 2), remainingAfterCrystal);
-  const remainingAfterConcrete = Math.max(0, remainingAfterCrystal - concreteCount);
-  const brickCount = Math.min(getDoublingBrickCount(2, 2, 2), remainingAfterConcrete);
+  const brickCount = game.level >= 2 ? Math.min(1, durableSlotCount) : 0;
+  const remainingAfterBrick = Math.max(0, durableSlotCount - brickCount);
+  const concreteCount = game.level >= 4 ? Math.min(1, remainingAfterBrick) : 0;
+  const remainingAfterConcrete = Math.max(0, remainingAfterBrick - concreteCount);
+  const crystalCount = game.level >= 6 ? Math.min(1, remainingAfterConcrete) : 0;
   const crystalIndices = durableCandidateIndices.slice(0, crystalCount);
   const concreteIndices = durableCandidateIndices.slice(crystalCount, crystalCount + concreteCount);
   const brickIndices = durableCandidateIndices.slice(
@@ -1193,8 +1157,6 @@ function createBricks() {
     crystalCount + concreteCount + brickCount
   );
   const shuffledStandardBonusTypes = shuffleArray([...standardBonusTypes]);
-  const brickSuperBonusTypes = getBalancedBonusTypes(brickIndices.length, "extraLife", "suddenDeath");
-  const concreteSuperBonusTypes = getBalancedBonusTypes(concreteIndices.length, "superBall", "pingPong");
 
   for (const brickIndex of crystalIndices) {
     setBrickMaterial(bricks[brickIndex], "crystal");
@@ -1212,12 +1174,12 @@ function createBricks() {
     bricks[standardBonusIndices[index]].bonusType = shuffledStandardBonusTypes[index];
   }
 
-  for (let index = 0; index < brickSuperBonusTypes.length; index += 1) {
-    bricks[brickIndices[index]].bonusType = brickSuperBonusTypes[index];
+  for (const brickIndex of brickIndices) {
+    bricks[brickIndex].bonusType = "extraLife";
   }
 
-  for (let index = 0; index < concreteSuperBonusTypes.length; index += 1) {
-    bricks[concreteIndices[index]].bonusType = concreteSuperBonusTypes[index];
+  for (const concreteIndex of concreteIndices) {
+    bricks[concreteIndex].bonusType = "superBall";
   }
 
   for (const brickIndex of crystalIndices) {
@@ -1409,25 +1371,12 @@ function clearEffects({ preservePaddleSizeLevel = false, preserveShooter = false
   effects.stickyActive = false;
   effects.stickyTimer = 0;
   effects.shooterActive = keepShooterAfterClear;
-  effects.shooterTimer = 0;
   effects.superShooterActive = false;
   effects.superShooterKeepsShooter = false;
   effects.superBallActive = false;
   effects.superBallTimer = 0;
   effects.speedModifier = 0;
   effects.speedTimer = 0;
-  while (effects.pingPongStacks > 0) {
-    for (const brick of bricks) {
-      if (!brick.alive || brick.destructible === false) {
-        continue;
-      }
-
-      brick.hitPoints = Math.max(1, Math.ceil(brick.hitPoints / 2));
-      brick.maxHitPoints = Math.max(1, Math.ceil(brick.maxHitPoints / 2));
-    }
-
-    effects.pingPongStacks -= 1;
-  }
   effects.shotCooldown = 0;
   syncPaddleWidth();
   updateHud();
@@ -1769,7 +1718,6 @@ function activateBonus(type) {
     effects.stickyTimer = 15;
   } else if (type === "shooter") {
     effects.shooterActive = true;
-    effects.shooterTimer = 0;
     if (effects.superShooterActive) {
       effects.superShooterKeepsShooter = true;
     }
@@ -1778,24 +1726,10 @@ function activateBonus(type) {
   } else if (type === "superBall") {
     effects.superBallActive = true;
     effects.superBallTimer = 5;
-  } else if (type === "suddenDeath") {
-    loseLife();
-    return true;
-  } else if (type === "pingPong") {
-    for (const brick of bricks) {
-      if (!brick.alive || brick.destructible === false) {
-        continue;
-      }
-
-      brick.hitPoints *= 2;
-      brick.maxHitPoints *= 2;
-    }
-    effects.pingPongStacks += 1;
   } else if (type === "crystalCombo") {
     effects.superShooterKeepsShooter = effects.superShooterKeepsShooter || effects.shooterActive;
     effects.shooterActive = true;
     effects.superShooterActive = true;
-    effects.shooterTimer = 30;
   } else if (type === "speedDouble") {
     const previousSpeedFactor = 1 + effects.speedModifier;
     effects.speedModifier = -0.5;
@@ -1827,16 +1761,6 @@ function updateEffects(deltaSeconds) {
 
   if (effects.shotCooldown > 0) {
     effects.shotCooldown = Math.max(0, effects.shotCooldown - deltaSeconds);
-  }
-
-  if (effects.superShooterActive) {
-    effects.shooterTimer = Math.max(0, effects.shooterTimer - deltaSeconds);
-    if (effects.shooterTimer === 0) {
-      effects.superShooterActive = false;
-      effects.shooterActive = effects.superShooterKeepsShooter;
-      effects.superShooterKeepsShooter = false;
-      hudChanged = true;
-    }
   }
 
   if (effects.stickyActive) {
@@ -2341,42 +2265,6 @@ function drawBonusIcon(type, centerX, centerY, size, isPositive) {
       }
       context.stroke();
     }
-  } else if (type === "suddenDeath") {
-    context.fillStyle = "#ffe4e6";
-    context.strokeStyle = "#fff7ed";
-    context.lineWidth = Math.max(1.8, size * 0.09);
-    context.beginPath();
-    context.arc(0, -size * 0.02, size * 0.18, 0, Math.PI * 2);
-    context.fill();
-    context.stroke();
-    context.beginPath();
-    context.moveTo(-size * 0.18, size * 0.14);
-    context.lineTo(size * 0.18, size * 0.14);
-    context.moveTo(-size * 0.12, size * 0.14);
-    context.lineTo(-size * 0.2, size * 0.28);
-    context.moveTo(size * 0.12, size * 0.14);
-    context.lineTo(size * 0.2, size * 0.28);
-    context.stroke();
-    context.beginPath();
-    context.moveTo(-size * 0.08, -size * 0.04);
-    context.lineTo(-size * 0.02, size * 0.02);
-    context.moveTo(-size * 0.02, -size * 0.04);
-    context.lineTo(-size * 0.08, size * 0.02);
-    context.moveTo(size * 0.02, -size * 0.04);
-    context.lineTo(size * 0.08, size * 0.02);
-    context.moveTo(size * 0.08, -size * 0.04);
-    context.lineTo(size * 0.02, size * 0.02);
-    context.moveTo(-size * 0.06, size * 0.08);
-    context.quadraticCurveTo(0, size * 0.13, size * 0.06, size * 0.08);
-    context.stroke();
-  } else if (type === "pingPong") {
-    context.beginPath();
-    context.arc(0, 0, size * 0.24, 0, Math.PI * 2);
-    context.stroke();
-    context.beginPath();
-    context.moveTo(-size * 0.18, -size * 0.18);
-    context.lineTo(size * 0.18, size * 0.18);
-    context.stroke();
   } else if (type === "crystalCombo") {
     context.fillStyle = "#fee2e2";
     context.fillRect(-size * 0.28, size * 0.02, size * 0.56, size * 0.14);
