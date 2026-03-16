@@ -2511,7 +2511,16 @@ function drawBricks() {
     );
     face.addColorStop(0.15, baseColor);
     face.addColorStop(0.48, baseColor);
-    face.addColorStop(0.72, isCrystalBrick ? "#22d3ee" : isBrickBrick ? "#ea580c" : standardPalette.base);
+    face.addColorStop(
+      0.72,
+      isCrystalBrick
+          ? "#22d3ee"
+          : isConcreteBrick
+          ? "#9ca3af"
+          : isBrickBrick
+          ? "#ea580c"
+          : standardPalette.base
+    );
     face.addColorStop(
       1,
       isWallBrick
@@ -2530,11 +2539,11 @@ function drawBricks() {
         : isCrystalBrick
         ? "rgba(34, 211, 238, 0.45)"
         : isConcreteBrick
-        ? "rgba(107, 114, 128, 0.42)"
+        ? "rgba(55, 65, 81, 0.18)"
           : isBrickBrick
           ? "rgba(194, 65, 12, 0.4)"
           : standardPalette.glow;
-    context.shadowBlur = 14;
+    context.shadowBlur = isConcreteBrick ? 6 : 14;
     context.shadowOffsetY = 4;
     context.fillStyle = face;
     context.fillRect(brick.x, brick.y, brick.width, brick.height);
