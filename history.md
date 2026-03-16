@@ -197,3 +197,9 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 190. `2 fixy: HUD i plansza maja ten sam kolor obwodki oraz ten sam border-radius; wzmacniamy odblokowanie Web Audio pod iPhone Safari przez cichy buffer source i dodatkowe gesty end/up`
 191. `fix: jeszcze mocniej wzmacniamy audio na iPhone Safari przez audioSession=playback oraz ukryty silent audio unlock w realnym geście`
 192. `fix: na iPhone/iOS dodajemy fallback SFX przez generowane WAV-y odtwarzane jako HTMLAudio/media channel zamiast polegac tylko na Web Audio`
+193. `fix: optymalizujemy wydajnosc audio na iPhone przez mniejsza polifonie i mocniejszy throttling najczestszych SFX zamiast probowac odtwarzac wszystkie naraz`
+194. `fix: wycofujemy opozniajace odtwarzanie SFX przez HTMLAudio; HTMLAudio zostaje tylko do odblokowania iOS, a same efekty znow ida przez low-latency Web Audio`
+195. `fix: przestajemy czekac na wolniejsze media unlock przy samym resume Web Audio, zeby pierwszy SFX nie byl opozniany przez handshake iOS`
+196. `fix: iPhone silent/media unlock wykonuje sie tylko do pierwszego skutecznego odblokowania i nie odpala sie ponownie przy kolejnych akcjach`
+197. `fix: rozdzielamy iOS media unlock od zwyklego Web Audio resume; wolniejszy unlock kanału media uruchamia sie tylko z pierwszego gestu i nie dokleja sie do kazdej akcji`
+198. `fix: radykalny rollback audio - wracamy do pierwszej wersji SFX z 1.4.0 i usuwamy pozniejsze hacki odblokowania/fallbacku, ktore dokladaly opoznienie`
