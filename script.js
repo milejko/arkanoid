@@ -40,6 +40,7 @@ const GRID_ROWS = 26;
 const BRICK_ROW_COUNT = 5;
 const BRICK_START_ROW = 2;
 const PLAYFIELD_INSET = 4;
+const KEYBOARD_PADDLE_SPEED_TILES_PER_SECOND = 8;
 
 function formatVersionFromHistoryEntry(entryNumber) {
   const major = Math.floor(entryNumber / 100);
@@ -1136,7 +1137,7 @@ function resizeCanvas() {
   brickConfig.height = getTileHeight();
   layoutBricks();
   paddle.height = getTileHeight() * 0.5;
-  paddle.speed = getTileWidth() * 14.25;
+  paddle.speed = getTileWidth() * KEYBOARD_PADDLE_SPEED_TILES_PER_SECOND;
   paddle.y = getPaddleY();
   paddle.baseWidth = getBasePaddleWidth();
   ball.radius = getBallRadius();
