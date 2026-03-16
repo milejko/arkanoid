@@ -23,7 +23,7 @@
 - Special durable bricks are fixed singletons by level: one brick tile from level 2 gives `extraLife`, one concrete tile from level 4 gives `superBall`, and one crystal tile from level 6 gives a 15-second super-shooter.
 - Bonus brick density is randomized in `createBricks()` at roughly 18% of the board, with at least one bonus brick per layout.
 - Bricks now start on the 3rd logical row (`BRICK_START_ROW = 2`), leaving two empty rows above the brick grid, and the paddle sits on the bottom row of the inset playfield.
-- Wall layouts have no tiles on levels 1-4. Levels 5-15 use distinct predefined patterns, and from level 5 onward every level keeps walls by looping that 11-layout cycle.
+- Wall layouts have no tiles on levels 1-4. Levels 5-15 use distinct but mirror-symmetric predefined patterns, and from level 5 onward every level keeps walls by looping that 11-layout cycle.
 - Paddle size changes are discrete levels, not arbitrary pixel math. Reuse `effects.paddleSizeLevel`, `paddleSizeLevels`, and `syncPaddleWidth()` instead of setting paddle width directly.
 - `syncPaddleWidth()` preserves the paddle center and clamps any attached-ball offset. Reuse it after size/base-width changes instead of writing ad hoc width/position code.
 - Ball speed changes are temporary modifiers applied relative to the current base speed. Reuse `effects.speedModifier`, `effects.speedTimer`, and `getCurrentBallBaseSpeed()` so level scaling and temporary speed effects continue to compose correctly.
