@@ -47,7 +47,7 @@ Cel jest prosty: odbijaj piłkę, niszcz cegły i nie pozwól jej spaść pod pa
 - Kafle mają subtelny odstęp między sobą, a pięć rzędów cegieł zaczyna się od `3.` rzędu siatki, więc nad nimi zostają dwa puste rzędy.
 - Startowa paletka ma szerokość `1` kafla i wysokość `1/2` kafla.
 - Paletka startowo wisi w dolnym rzędzie aktywnego pola gry.
-- Plansza ma też progresję **niezniszczalnych jasnoszarych ścian** w cyklu `12` poziomów; od poziomu `2` dochodzą kolejne kafle na poziomach `2`, `4`, `6`, `8`, `10` i `12`, a potem układ zaczyna się od nowa.
+- Plansza ma też progresję **niezniszczalnych jasnoszarych ścian**: poziomy `1-4` są bez ścian, poziomy `5-15` mają różne charakterystyczne układy, a od tego momentu wzory zapętlają się już na każdym kolejnym poziomie.
 - Po utracie życia aktywne bonusy znikają.
 - Po zakończeniu gry możesz zapisać wynik, ale tylko wtedy, gdy trafia do **pierwszej dziesiątki**.
 
@@ -71,7 +71,7 @@ Cel jest prosty: odbijaj piłkę, niszcz cegły i nie pozwól jej spaść pod pa
 
 Standardowe bonusy są ukryte losowo w zwykłych kaflach i wypadają dopiero po ich zniszczeniu. W grze występują zarówno bonusy pozytywne, jak i negatywne. Na każdym poziomie dostępny jest pełny zestaw standardowych bonusów, ale bez **+1 życia** i **super piłki**. Każdy standardowy bonus pojawia się na planszy dokładnie raz i ma przypisany dokładnie jeden zwykły kafel.
 
-Na wyższych poziomach część zwykłych cegieł zastępowana jest przez trzy klasy trwałych bloków. Od poziomu `2` pojawia się zawsze dokładnie jeden **ceglany** kafel z bonusem `+1 życie`. Od poziomu `4` dochodzi zawsze dokładnie jeden **betonowy** kafel z bonusem `fireball`. Od poziomu `6` dochodzi zawsze dokładnie jeden **kryształowy** kafel z bonusem **super-armaty**. Super-armata trwa `15` sekund, a jej czerwone strzały rozwalają ściany oraz każdy niszczalny kafel jednym trafieniem. Ściany layoutu działają w cyklu `12` poziomów, startują dopiero od poziomu `5` i używają bardziej charakterystycznych wzorów typu brama, filary, klepsydra czy zygzak. Aktywna **super piłka / fireball** potrafi zniszczyć również te jasnoszare ściany.
+Na wyższych poziomach część zwykłych cegieł zastępowana jest przez trzy klasy trwałych bloków. Od poziomu `2` pojawia się zawsze dokładnie jeden **ceglany** kafel z bonusem `+1 życie`. Od poziomu `4` dochodzi zawsze dokładnie jeden **betonowy** kafel z bonusem `fireball`. Od poziomu `6` dochodzi zawsze dokładnie jeden **kryształowy** kafel z bonusem **super-armaty**. Super-armata trwa `15` sekund, a jej czerwone strzały rozwalają ściany oraz każdy niszczalny kafel jednym trafieniem. Ściany layoutu startują od poziomu `5`, poziomy `5-15` mają własne wzory, a potem ten zestaw zapętla się już bez przerw na kolejnych levelach. Aktywna **super piłka / fireball** potrafi zniszczyć również te jasnoszare ściany.
 
 ### Pozytywne
 

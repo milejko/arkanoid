@@ -373,24 +373,24 @@ function getCanvasMetrics() {
   };
 }
 
-const wallLayoutsByCycleLevel = {
-  5: [
+const wallLayoutCycle = [
+  [
     { row: 8, column: 2 },
     { row: 8, column: 5 },
   ],
-  6: [
+  [
     { row: 8, column: 1 },
     { row: 8, column: 6 },
     { row: 9, column: 1 },
     { row: 9, column: 6 },
   ],
-  7: [
+  [
     { row: 8, column: 3 },
     { row: 8, column: 4 },
     { row: 9, column: 2 },
     { row: 9, column: 5 },
   ],
-  8: [
+  [
     { row: 8, column: 1 },
     { row: 8, column: 6 },
     { row: 9, column: 2 },
@@ -398,14 +398,14 @@ const wallLayoutsByCycleLevel = {
     { row: 10, column: 3 },
     { row: 10, column: 4 },
   ],
-  9: [
+  [
     { row: 8, column: 1 },
     { row: 8, column: 6 },
     { row: 9, column: 3 },
     { row: 10, column: 1 },
     { row: 10, column: 6 },
   ],
-  10: [
+  [
     { row: 8, column: 2 },
     { row: 8, column: 5 },
     { row: 9, column: 1 },
@@ -413,7 +413,7 @@ const wallLayoutsByCycleLevel = {
     { row: 10, column: 2 },
     { row: 10, column: 5 },
   ],
-  11: [
+  [
     { row: 8, column: 1 },
     { row: 8, column: 3 },
     { row: 8, column: 6 },
@@ -421,7 +421,7 @@ const wallLayoutsByCycleLevel = {
     { row: 9, column: 5 },
     { row: 10, column: 4 },
   ],
-  12: [
+  [
     { row: 8, column: 1 },
     { row: 8, column: 6 },
     { row: 9, column: 2 },
@@ -429,16 +429,43 @@ const wallLayoutsByCycleLevel = {
     { row: 10, column: 1 },
     { row: 10, column: 6 },
   ],
-};
+  [
+    { row: 8, column: 2 },
+    { row: 8, column: 5 },
+    { row: 9, column: 1 },
+    { row: 9, column: 3 },
+    { row: 9, column: 4 },
+    { row: 9, column: 6 },
+    { row: 10, column: 2 },
+    { row: 10, column: 5 },
+  ],
+  [
+    { row: 8, column: 3 },
+    { row: 8, column: 4 },
+    { row: 9, column: 2 },
+    { row: 9, column: 5 },
+    { row: 10, column: 1 },
+    { row: 10, column: 6 },
+  ],
+  [
+    { row: 8, column: 1 },
+    { row: 8, column: 2 },
+    { row: 8, column: 5 },
+    { row: 8, column: 6 },
+    { row: 9, column: 1 },
+    { row: 9, column: 6 },
+    { row: 10, column: 2 },
+    { row: 10, column: 5 },
+  ],
+];
 
 function getLayoutWallTiles() {
-  const levelInCycle = ((Math.max(1, game.level) - 1) % 12) + 1;
-
   if (game.level < 5) {
     return [];
   }
 
-  return wallLayoutsByCycleLevel[levelInCycle] || [];
+  const cycleIndex = (Math.max(5, game.level) - 5) % wallLayoutCycle.length;
+  return wallLayoutCycle[cycleIndex] || [];
 }
 
 function getPlayfieldTopBoundary() {
