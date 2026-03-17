@@ -17,7 +17,7 @@
 
 ## Key conventions
 
-- Keep player-facing copy in Polish. Most identifiers are English, but HUD text, messages, and leaderboard labels are Polish and should stay consistent unless the task is explicitly about localization or UX text.
+- Player-facing copy is now localized through external files in `locales/*.js`. Keep identifiers in English, but add or change UI strings via the locale files and preserve the browser-language auto-selection flow.
 - When adding mechanics, thread them through the existing state/update/render/reset structure instead of adding isolated logic. Features usually need coordinated changes in state objects, `update*()` functions, `draw*()` functions, `handleAction()`, and reset paths such as `resetRound()`, `resetGame()`, and `loseLife()`.
 - Bonus behavior follows existing gameplay rules: brick bonuses are hidden until a brick breaks, collected bonuses affect `effects`, and losing a life clears both positive and negative active effects via `clearEffects()`.
 - Special durable bricks are fixed singletons by level: one brick tile from level 2 gives `extraLife`, one concrete tile from level 4 gives `superBall`, one crystal tile from level 6 gives a 15-second super-shooter, and one black-diamond tile from level 8 gives a 15-second triple cannon with a super center shot and normal side shots.

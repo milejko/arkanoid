@@ -227,3 +227,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 220. `tuning: zmniejszamy tez symetryczne wzory scian przypisane do poziomow 13 i 14`
 221. `fix: odbicie pilki od kafli wypycha ja juz poza kolizje, zeby sciany layoutu nie mogly jej uwiezic`
 222. `feat: od poziomu 8 dochodzi czarny diament na 5 trafien z bonusem potrojnej armaty - srodkowy strzal jest super, boczne sa zwykle`
+223. `feat: interfejs dostaje zewnetrzne pliki locale i auto-wybor jezyka przegladarki dla pl/en/nl/sv/fi`

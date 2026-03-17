@@ -6,15 +6,26 @@
     <title>Arkanoid</title>
     <script>
       (() => {
-        const historyEntryNumber = 222;
+        const historyEntryNumber = 223;
         const major = Math.floor(historyEntryNumber / 100);
         const minor = Math.floor((historyEntryNumber % 100) / 10);
         const patch = historyEntryNumber % 10;
         const version = `${major}.${minor}.${patch}`;
-        const lastUpdated = "16.03.2026 21:21";
+        const lastUpdated = "17.03.2026 16:34";
         window.APP_HISTORY_ENTRY_NUMBER = historyEntryNumber;
         window.APP_VERSION = version;
         window.APP_LAST_UPDATED = lastUpdated;
+        const supportedLocales = ["pl", "en", "nl", "sv", "fi"];
+        const browserLanguages = Array.isArray(navigator.languages) && navigator.languages.length
+          ? navigator.languages
+          : [navigator.language || "pl"];
+        const localeCandidates = browserLanguages.flatMap((languageTag) => {
+          const normalized = String(languageTag || "").toLowerCase();
+          const baseLanguage = normalized.split("-")[0];
+          return normalized && normalized !== baseLanguage ? [normalized, baseLanguage] : [baseLanguage];
+        });
+        window.APP_LOCALE =
+          localeCandidates.find((candidate) => supportedLocales.includes(candidate)) || "pl";
 
         const stylesheet = document.createElement("link");
         stylesheet.rel = "stylesheet";
@@ -39,15 +50,15 @@
       <div class="hud">
         <div class="panel stats" aria-live="polite">
           <div class="stat stat-level">
-            <span class="label">Poziom</span>
+            <span class="label" id="hudLevelLabel">Poziom</span>
             <span class="value" id="level">1</span>
           </div>
           <div class="stat">
-            <span class="label">Wynik</span>
+            <span class="label" id="hudScoreLabel">Wynik</span>
             <span class="value" id="score">0</span>
           </div>
           <div class="stat">
-            <span class="label">Życia</span>
+            <span class="label" id="hudLivesLabel">Życia</span>
             <span class="value value-lives" id="lives">♥ ♥ ♥</span>
           </div>
         </div>
@@ -56,11 +67,11 @@
 
     <div class="leaderboard-overlay" id="leaderboardOverlay">
       <section class="leaderboard-card" aria-labelledby="leaderboardTitle">
-        <p class="leaderboard-kicker">Arkanoid</p>
+        <p class="leaderboard-kicker" id="leaderboardKicker">Arkanoid</p>
         <h2 class="leaderboard-title" id="leaderboardTitle">Tablica wyników</h2>
         <p class="leaderboard-subtitle" id="leaderboardSubtitle"></p>
         <form class="leaderboard-form hidden" id="scoreForm" autocomplete="off">
-          <label class="leaderboard-label" for="playerName">Imię / inicjał</label>
+          <label class="leaderboard-label" for="playerName" id="playerNameLabel">Imię / inicjał</label>
           <div class="leaderboard-form-row">
             <input
               class="leaderboard-input"
@@ -77,13 +88,13 @@
         <p class="leaderboard-empty hidden" id="leaderboardEmpty"></p>
 
         <div class="leaderboard-table-scroll">
-          <table class="leaderboard-table" aria-label="Tablica wyników">
+          <table class="leaderboard-table" id="leaderboardTable" aria-label="Tablica wyników">
             <thead>
               <tr>
-                <th>Imię</th>
-                <th>Level</th>
-                <th>Punkty</th>
-                <th class="leaderboard-table-device">Typ</th>
+                <th id="leaderboardNameHeader">Imię</th>
+                <th id="leaderboardLevelHeader">Level</th>
+                <th id="leaderboardScoreHeader">Punkty</th>
+                <th class="leaderboard-table-device" id="leaderboardDeviceHeader">Typ</th>
               </tr>
             </thead>
             <tbody id="leaderboardBody"></tbody>
@@ -101,9 +112,9 @@
 
     <div class="leaderboard-overlay pause-overlay hidden" id="pauseOverlay">
       <section class="leaderboard-card pause-card" aria-labelledby="pauseTitle">
-        <p class="leaderboard-kicker">Arkanoid</p>
+        <p class="leaderboard-kicker" id="pauseKicker">Arkanoid</p>
         <h2 class="leaderboard-title" id="pauseTitle">Pauza</h2>
-        <p class="leaderboard-subtitle" aria-label="Trzy kawy">☕ ☕ ☕</p>
+        <p class="leaderboard-subtitle" id="pauseSubtitle" aria-label="Trzy kawy">☕ ☕ ☕</p>
         <div class="leaderboard-actions">
           <span class="leaderboard-status"></span>
           <button class="leaderboard-button leaderboard-button-secondary" id="pauseResumeButton" type="button">
@@ -115,7 +126,7 @@
 
     <div class="leaderboard-overlay pause-overlay hidden" id="startOverlay">
       <section class="leaderboard-card pause-card" aria-labelledby="startOverlayTitle">
-        <p class="leaderboard-kicker">Arkanoid</p>
+        <p class="leaderboard-kicker" id="startKicker">Arkanoid</p>
         <h2 class="leaderboard-title" id="startOverlayTitle">Poziom 1</h2>
         <p class="leaderboard-subtitle" id="startOverlaySubtitle">Zaczynamy? 🚀</p>
         <div class="leaderboard-actions">
@@ -132,9 +143,29 @@
 
     <script>
       (() => {
-        const appScript = document.createElement("script");
-        appScript.src = `script.js?v=${encodeURIComponent(window.APP_VERSION || "0.0.0")}`;
-        document.body.appendChild(appScript);
+        const version = encodeURIComponent(window.APP_VERSION || "0.0.0");
+        const fallbackLocale = "pl";
+        const appendAppScript = () => {
+          const appScript = document.createElement("script");
+          appScript.src = `script.js?v=${version}`;
+          document.body.appendChild(appScript);
+        };
+        const appendLocaleScript = (localeCode, canFallback) => {
+          const localeScript = document.createElement("script");
+          localeScript.src = `locales/${encodeURIComponent(localeCode)}.js?v=${version}`;
+          localeScript.onload = appendAppScript;
+          localeScript.onerror = () => {
+            if (canFallback && localeCode !== fallbackLocale) {
+              window.APP_LOCALE = fallbackLocale;
+              appendLocaleScript(fallbackLocale, false);
+              return;
+            }
+            appendAppScript();
+          };
+          document.body.appendChild(localeScript);
+        };
+
+        appendLocaleScript(window.APP_LOCALE || fallbackLocale, true);
       })();
     </script>
   </body>

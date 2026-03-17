@@ -7,6 +7,9 @@ const topChromeElement = document.querySelector(".top-chrome");
 const leaderboardOverlay = document.getElementById("leaderboardOverlay");
 const pauseOverlay = document.getElementById("pauseOverlay");
 const startOverlay = document.getElementById("startOverlay");
+const hudLevelLabelElement = document.getElementById("hudLevelLabel");
+const hudScoreLabelElement = document.getElementById("hudScoreLabel");
+const hudLivesLabelElement = document.getElementById("hudLivesLabel");
 const startOverlayTitleElement = document.getElementById("startOverlayTitle");
 const startOverlaySubtitleElement = document.getElementById("startOverlaySubtitle");
 const leaderboardTitleElement = document.getElementById("leaderboardTitle");
@@ -14,10 +17,18 @@ const leaderboardSubtitleElement = document.getElementById("leaderboardSubtitle"
 const leaderboardStatusElement = document.getElementById("leaderboardStatus");
 const leaderboardBodyElement = document.getElementById("leaderboardBody");
 const leaderboardEmptyElement = document.getElementById("leaderboardEmpty");
+const leaderboardTableElement = document.getElementById("leaderboardTable");
+const playerNameLabelElement = document.getElementById("playerNameLabel");
+const leaderboardNameHeaderElement = document.getElementById("leaderboardNameHeader");
+const leaderboardLevelHeaderElement = document.getElementById("leaderboardLevelHeader");
+const leaderboardScoreHeaderElement = document.getElementById("leaderboardScoreHeader");
+const leaderboardDeviceHeaderElement = document.getElementById("leaderboardDeviceHeader");
 const scoreFormElement = document.getElementById("scoreForm");
 const playerNameInput = document.getElementById("playerName");
 const scoreSubmitButton = document.getElementById("scoreSubmitButton");
 const leaderboardStartButton = document.getElementById("leaderboardStartButton");
+const pauseTitleElement = document.getElementById("pauseTitle");
+const pauseSubtitleElement = document.getElementById("pauseSubtitle");
 const pauseResumeButton = document.getElementById("pauseResumeButton");
 const startOverlayButton = document.getElementById("startOverlayButton");
 const versionBadgeElement = document.getElementById("versionBadge");
@@ -59,12 +70,78 @@ const APP_LAST_UPDATED =
   typeof window.APP_LAST_UPDATED === "string" && window.APP_LAST_UPDATED
     ? window.APP_LAST_UPDATED
     : "";
+const APP_LOCALE =
+  typeof window.APP_LOCALE === "string" && window.APP_LOCALE
+    ? window.APP_LOCALE
+    : "pl";
+const localeData =
+  window.ARKANOID_LOCALE_DATA && typeof window.ARKANOID_LOCALE_DATA === "object"
+    ? window.ARKANOID_LOCALE_DATA
+    : {};
+
+function resolveTranslation(key) {
+  return key.split(".").reduce((value, segment) => {
+    if (!value || typeof value !== "object" || !(segment in value)) {
+      return undefined;
+    }
+
+    return value[segment];
+  }, localeData);
+}
+
+function interpolateTranslation(template, parameters = {}) {
+  return String(template).replace(/\{(\w+)\}/g, (_, token) => {
+    return token in parameters ? String(parameters[token]) : `{${token}}`;
+  });
+}
+
+function t(key, parameters = {}, fallback = key) {
+  const resolved = resolveTranslation(key);
+  if (typeof resolved !== "string") {
+    return interpolateTranslation(fallback, parameters);
+  }
+
+  return interpolateTranslation(resolved, parameters);
+}
+
+function getLevelMessage(level) {
+  return t("messages.level", { level }, `Poziom ${level}`);
+}
+
+function applyStaticTranslations() {
+  document.documentElement.lang = APP_LOCALE;
+  document.title = t("meta.title", {}, document.title);
+  canvas.setAttribute("aria-label", t("aria.scene", {}, canvas.getAttribute("aria-label") || ""));
+  versionBadgeElement?.setAttribute("aria-label", t("aria.versionBadge", {}, versionBadgeElement.getAttribute("aria-label") || ""));
+  hudLevelLabelElement.textContent = t("hud.level", {}, hudLevelLabelElement.textContent);
+  hudScoreLabelElement.textContent = t("hud.score", {}, hudScoreLabelElement.textContent);
+  hudLivesLabelElement.textContent = t("hud.lives", {}, hudLivesLabelElement.textContent);
+  leaderboardTitleElement.textContent = t("leaderboard.title", {}, leaderboardTitleElement.textContent);
+  leaderboardTableElement?.setAttribute("aria-label", t("leaderboard.tableAria", {}, leaderboardTableElement.getAttribute("aria-label") || ""));
+  playerNameLabelElement.textContent = t("leaderboard.nameLabel", {}, playerNameLabelElement.textContent);
+  playerNameInput.setAttribute("placeholder", t("leaderboard.namePlaceholder", {}, playerNameInput.getAttribute("placeholder") || ""));
+  scoreSubmitButton.textContent = t("leaderboard.submit", {}, scoreSubmitButton.textContent);
+  leaderboardNameHeaderElement.textContent = t("leaderboard.headers.name", {}, leaderboardNameHeaderElement.textContent);
+  leaderboardLevelHeaderElement.textContent = t("leaderboard.headers.level", {}, leaderboardLevelHeaderElement.textContent);
+  leaderboardScoreHeaderElement.textContent = t("leaderboard.headers.score", {}, leaderboardScoreHeaderElement.textContent);
+  leaderboardDeviceHeaderElement.textContent = t("leaderboard.headers.device", {}, leaderboardDeviceHeaderElement.textContent);
+  leaderboardEmptyElement.textContent = t("leaderboard.empty", {}, leaderboardEmptyElement.textContent);
+  leaderboardStartButton.textContent = t("common.start", {}, leaderboardStartButton.textContent);
+  pauseTitleElement.textContent = t("pause.title", {}, pauseTitleElement.textContent);
+  pauseSubtitleElement?.setAttribute("aria-label", t("pause.subtitleAria", {}, pauseSubtitleElement.getAttribute("aria-label") || ""));
+  pauseResumeButton.textContent = t("pause.resume", {}, pauseResumeButton.textContent);
+  startOverlayTitleElement.textContent = getLevelMessage(1);
+  startOverlaySubtitleElement.textContent = t("start.subtitleStart", {}, startOverlaySubtitleElement.textContent);
+  startOverlayButton.textContent = t("common.start", {}, startOverlayButton.textContent);
+}
 
 if (versionBadgeElement) {
   versionBadgeElement.textContent = APP_LAST_UPDATED
     ? `${APP_VERSION} · ${APP_LAST_UPDATED}`
     : APP_VERSION;
 }
+
+applyStaticTranslations();
 
 const audioState = {
   context: null,
@@ -495,52 +572,52 @@ function getBrickTopOffset() {
 
 const bonusCatalog = {
   widen: {
-    label: "Paletka +50%",
+    label: t("bonus.widen", {}, "Paletka +50%"),
     symbol: "+",
     color: "#facc15",
   },
   sticky: {
-    label: "Klej",
+    label: t("bonus.sticky", {}, "Klej"),
     symbol: "K",
     color: "#fb7185",
   },
   shooter: {
-    label: "Działo",
+    label: t("bonus.shooter", {}, "Działo"),
     symbol: "S",
     color: "#38bdf8",
   },
   extraLife: {
-    label: "+1 życie",
+    label: t("bonus.extraLife", {}, "+1 życie"),
     symbol: "L",
     color: "#f472b6",
   },
   superBall: {
-    label: "Fireball",
+    label: t("bonus.superBall", {}, "Fireball"),
     symbol: "*",
     color: "#ef4444",
   },
   crystalCombo: {
-    label: "Super-armata",
+    label: t("bonus.crystalCombo", {}, "Super-armata"),
     symbol: "SA",
     color: "#67e8f9",
   },
   blackDiamondCombo: {
-    label: "Potrójna armata",
+    label: t("bonus.blackDiamondCombo", {}, "Potrójna armata"),
     symbol: "3A",
     color: "#94a3b8",
   },
   shrinkHalf: {
-    label: "Paletka -50%",
+    label: t("bonus.shrinkHalf", {}, "Paletka -50%"),
     symbol: "-",
     color: "#f87171",
   },
   speedDouble: {
-    label: "Piłka -50%",
+    label: t("bonus.speedDouble", {}, "Piłka -50%"),
     symbol: ">",
     color: "#f97316",
   },
   speedTriple: {
-    label: "Piłka +25%",
+    label: t("bonus.speedTriple", {}, "Piłka +25%"),
     symbol: ">>",
     color: "#ef4444",
   },
@@ -585,14 +662,14 @@ function detectDeviceTypeFromResolution() {
 
 function getDeviceTypeLabel(deviceType) {
   if (deviceType === "phone") {
-    return "Telefon";
+    return t("devices.phone", {}, "Telefon");
   }
 
   if (deviceType === "tablet") {
-    return "Tablet";
+    return t("devices.tablet", {}, "Tablet");
   }
 
-  return "Komputer";
+  return t("devices.computer", {}, "Komputer");
 }
 
 function createDeviceTypeIconElement(deviceType) {
@@ -711,7 +788,7 @@ function getLeaderboardStatusMessage() {
     return {
       kind: "loading",
       tone: "info",
-      label: "Zapisywanie",
+      label: t("leaderboard.saving", {}, "Zapisywanie"),
     };
   }
 
@@ -719,7 +796,7 @@ function getLeaderboardStatusMessage() {
     return {
       kind: "loading",
       tone: "info",
-      label: "Ładowanie",
+      label: t("leaderboard.loading", {}, "Ładowanie"),
     };
   }
 
@@ -760,7 +837,7 @@ function renderLeaderboardStatus() {
     leaderboardStatusElement.classList.add("leaderboard-status-loading");
     const dots = document.createElement("span");
     dots.className = "loading-dots";
-    dots.setAttribute("aria-label", status.label || "Ładowanie");
+    dots.setAttribute("aria-label", status.label || t("leaderboard.loading", {}, "Ładowanie"));
 
     for (let index = 0; index < 3; index += 1) {
       const dot = document.createElement("span");
@@ -780,19 +857,19 @@ function renderLeaderboardStatus() {
 
 function parseLeaderboardPayload(payload) {
   if (!payload || typeof payload !== "object") {
-    throw new Error("Nieprawidłowa odpowiedź backendu leaderboardu.");
+    throw new Error(t("leaderboard.errors.invalidPayload", {}, "Nieprawidłowa odpowiedź backendu leaderboardu."));
   }
 
   if (payload.ok === false) {
     throw new Error(
       typeof payload.error === "string" && payload.error
         ? payload.error
-        : "Backend leaderboardu zwrócił błąd."
+        : t("leaderboard.errors.backendError", {}, "Backend leaderboardu zwrócił błąd.")
     );
   }
 
   if (!Array.isArray(payload.entries)) {
-    throw new Error("Backend leaderboardu nie zwrócił listy wyników.");
+    throw new Error(t("leaderboard.errors.missingEntries", {}, "Backend leaderboardu nie zwrócił listy wyników."));
   }
 
   return normalizeHighScoreEntries(payload.entries);
@@ -801,7 +878,11 @@ function parseLeaderboardPayload(payload) {
 async function fetchLeaderboardEntries() {
   if (!isLeaderboardBackendConfigured()) {
     throw new Error(
-      "Backend leaderboardu nie jest jeszcze skonfigurowany. Wdróż Apps Script i podmień LEADERBOARD_API_URL."
+      t(
+        "leaderboard.errors.notConfigured",
+        {},
+        "Backend leaderboardu nie jest jeszcze skonfigurowany. Wdróż Apps Script i podmień LEADERBOARD_API_URL."
+      )
     );
   }
 
@@ -814,7 +895,7 @@ async function fetchLeaderboardEntries() {
   );
 
   if (!response.ok) {
-    throw new Error(`Nie udało się pobrać wyników (${response.status}).`);
+    throw new Error(t("leaderboard.errors.fetchStatus", { status: response.status }, `Nie udało się pobrać wyników (${response.status}).`));
   }
 
   return parseLeaderboardPayload(await response.json());
@@ -835,9 +916,11 @@ async function refreshHighScores() {
     leaderboardState.statusMessage = "";
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : "Nie udało się pobrać leaderboardu.";
+      error instanceof Error
+        ? error.message
+        : t("leaderboard.errors.fetchGeneric", {}, "Nie udało się pobrać leaderboardu.");
     leaderboardState.statusMessage = leaderboardState.showingCachedCopy
-      ? `${errorMessage} Wyświetlam lokalną kopię wyników.`
+      ? t("leaderboard.cachedFallback", { error: errorMessage }, `${errorMessage} Wyświetlam lokalną kopię wyników.`)
       : errorMessage;
     leaderboardState.statusTone = leaderboardState.showingCachedCopy ? "info" : "error";
   } finally {
@@ -849,7 +932,11 @@ async function refreshHighScores() {
 async function persistHighScore(entry) {
   if (!isLeaderboardBackendConfigured()) {
     throw new Error(
-      "Backend leaderboardu nie jest jeszcze skonfigurowany. Wdróż Apps Script i podmień LEADERBOARD_API_URL."
+      t(
+        "leaderboard.errors.notConfigured",
+        {},
+        "Backend leaderboardu nie jest jeszcze skonfigurowany. Wdróż Apps Script i podmień LEADERBOARD_API_URL."
+      )
     );
   }
 
@@ -862,7 +949,7 @@ async function persistHighScore(entry) {
   });
 
   if (!response.ok) {
-    throw new Error(`Nie udało się zapisać wyniku (${response.status}).`);
+    throw new Error(t("leaderboard.errors.saveStatus", { status: response.status }, `Nie udało się zapisać wyniku (${response.status}).`));
   }
 
   return parseLeaderboardPayload(await response.json());
@@ -914,15 +1001,31 @@ function renderLeaderboard() {
     return;
   }
 
-  leaderboardTitleElement.textContent = isGameOver ? "Koniec gry" : "Tablica wyników";
+  leaderboardTitleElement.textContent = isGameOver
+    ? t("leaderboard.gameOverTitle", {}, "Koniec gry")
+    : t("leaderboard.title", {}, "Tablica wyników");
   leaderboardSubtitleElement.textContent = isGameOver
     ? shouldShowForm
-      ? `Wpisz imię i zapisz wynik: level ${game.level}, ${game.score} pkt.`
+      ? t(
+          "leaderboard.savePrompt",
+          { level: game.level, score: game.score },
+          `Wpisz imię i zapisz wynik: level ${game.level}, ${game.score} pkt.`
+        )
       : leaderboardState.scoreSaved
-        ? `Wynik zapisany. Level ${game.level}, ${game.score} pkt.`
-        : `Poza top ${MAX_HIGH_SCORES}. Level ${game.level}, ${game.score} pkt.`
+        ? t(
+            "leaderboard.savedSummary",
+            { level: game.level, score: game.score },
+            `Wynik zapisany. Level ${game.level}, ${game.score} pkt.`
+          )
+        : t(
+            "leaderboard.outOfTop",
+            { max: MAX_HIGH_SCORES, level: game.level, score: game.score },
+            `Poza top ${MAX_HIGH_SCORES}. Level ${game.level}, ${game.score} pkt.`
+          )
     : "";
-  leaderboardStartButton.textContent = isIntro ? "Start" : "Nowa gra";
+  leaderboardStartButton.textContent = isIntro
+    ? t("common.start", {}, "Start")
+    : t("common.newGame", {}, "Nowa gra");
   scoreFormElement.classList.toggle("hidden", !shouldShowForm);
   playerNameInput.disabled = leaderboardState.saving;
   scoreSubmitButton.disabled = leaderboardState.saving;
@@ -945,11 +1048,11 @@ function renderStartOverlay() {
 
   startOverlayTitleElement.textContent = game.message;
   if (game.startOverlayMode === "continue") {
-    startOverlaySubtitleElement.textContent = "Nic straconego. 🙂";
-    startOverlayButton.textContent = "Kontynuuj";
+    startOverlaySubtitleElement.textContent = t("start.subtitleContinue", {}, "Nic straconego. 🙂");
+    startOverlayButton.textContent = t("common.continue", {}, "Kontynuuj");
   } else {
-    startOverlaySubtitleElement.textContent = "Zaczynamy? 🚀";
-    startOverlayButton.textContent = "Start";
+    startOverlaySubtitleElement.textContent = t("start.subtitleStart", {}, "Zaczynamy? 🚀");
+    startOverlayButton.textContent = t("common.start", {}, "Start");
   }
 }
 
@@ -967,7 +1070,7 @@ function raiseLevelFromStartOverlay() {
   clearEffects({ preservePaddleSizeLevel: true, preserveShooter: true });
   createBricks();
   resetRound();
-  game.message = `Poziom ${game.level}`;
+  game.message = getLevelMessage(game.level);
   game.startOverlayMode = "levelStart";
   renderStartOverlay();
   updateHud();
@@ -1015,7 +1118,11 @@ function showLeaderboard(mode) {
   }
 
   if (useCachedHighScores() && !leaderboardState.loading && !leaderboardState.saving) {
-    leaderboardState.statusMessage = "Wyświetlam lokalną kopię tablicy wyników.";
+    leaderboardState.statusMessage = t(
+      "leaderboard.showingCachedCopy",
+      {},
+      "Wyświetlam lokalną kopię tablicy wyników."
+    );
     leaderboardState.statusTone = "info";
   } else if (!leaderboardState.loading && !leaderboardState.saving) {
     leaderboardState.statusMessage = "";
@@ -1071,8 +1178,12 @@ async function saveCurrentScore() {
   } catch (error) {
     leaderboardState.statusMessage =
       error instanceof Error
-        ? `${error.message} Wynik pozostał w lokalnej kopii.`
-        : "Nie udało się zapisać wyniku w Google. Wynik pozostał w lokalnej kopii.";
+        ? t("leaderboard.saveRetained", { error: error.message }, `${error.message} Wynik pozostał w lokalnej kopii.`)
+        : t(
+            "leaderboard.saveGoogleFailed",
+            {},
+            "Nie udało się zapisać wyniku w Google. Wynik pozostał w lokalnej kopii."
+          );
     leaderboardState.statusTone = "info";
   } finally {
     leaderboardState.saving = false;
@@ -1498,7 +1609,7 @@ function advanceToNextLevel() {
   clearEffects({ preservePaddleSizeLevel: true, preserveShooter: true });
   createBricks();
   resetRound();
-  game.message = `Poziom ${game.level}`;
+  game.message = getLevelMessage(game.level);
   game.startOverlayMode = "levelStart";
   renderStartOverlay();
   updateHud();
@@ -1614,8 +1725,8 @@ function resetRound() {
   game.running = false;
   game.message =
     game.lives > 0
-      ? `Poziom ${game.level}`
-      : "Koniec gry";
+      ? getLevelMessage(game.level)
+      : t("messages.gameOver", {}, "Koniec gry");
   game.startOverlayMode = isLifeContinuation ? "continue" : "levelStart";
   renderStartOverlay();
   renderPauseOverlay();

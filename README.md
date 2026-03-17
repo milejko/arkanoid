@@ -11,6 +11,7 @@ Zagraj online: [https://milejko.github.io/arkanoid/](https://milejko.github.io/a
 Projekt powstał jako statyczna aplikacja front-endowa:
 
 - `index.html` zawiera strukturę strony, HUD, overlaye i kanwę gry,
+- `locales/*.js` przechowują zewnętrzne tłumaczenia interfejsu ładowane według języka przeglądarki,
 - `styles.css` odpowiada za wygląd, responsywność i warstwę wizualną,
 - `script.js` zawiera całą logikę gry,
 - `google-apps-script/Code.gs` obsługuje backend tablicy wyników.
@@ -24,6 +25,7 @@ Projekt powstał jako statyczna aplikacja front-endowa:
 - betonowe, kryształowe i czarne diamentowe cegły wymagające wielu trafień na wyższych poziomach,
 - system bonusów pozytywnych i negatywnych,
 - syntetyczne efekty dźwiękowe w kosmicznym stylu, w tym osobne SFX dla dobrych i złych bonusów,
+- automatyczny dobór języka interfejsu na podstawie ustawień przeglądarki (`pl`, `en`, `nl`, `sv`, `fi`),
 - pauza uruchamiana klawiszem `P` oraz automatycznie po utracie fokusu karty,
 - tablica wyników z limitem **top 10**,
 - lokalna kopia hi-score w `localStorage`,
