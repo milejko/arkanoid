@@ -238,3 +238,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 231. `i18n: usuwamy z script.js twarde komunikaty runtime i fallbacki tlumaczen dla leaderboardu, bonusow, urzadzen oraz logow konsoli`
 232. `feat: pauza zapisuje snapshot aktywnej rozgrywki do localStorage i przy starcie aplikacji przywraca go jako wznowienie z ekranu pauzy`
 233. `feat: formularz leaderboardu zapamietuje ostatnio uzyte imie gracza w sessionStorage w ramach biezacej sesji przegladarki`
+234. `fix: wznowienie z localStorage obejmuje juz nie tylko pauze, ale tez ekran startu nowego levelu i kontynuacje po utracie zycia`

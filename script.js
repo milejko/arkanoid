@@ -822,6 +822,7 @@ function createPausedGameSnapshot() {
       lives: game.lives,
       level: game.level,
       running: game.running,
+      paused: game.paused,
       won: game.won,
       message: game.message,
       startOverlayMode: game.startOverlayMode,
@@ -873,8 +874,19 @@ function createPausedGameSnapshot() {
   };
 }
 
-function persistPausedGameState() {
-  if (!game.paused || !game.running || leaderboardState.mode) {
+function isResumableStoredGameState() {
+  return (
+    !leaderboardState.mode &&
+    game.lives > 0 &&
+    (
+      (game.paused && game.running) ||
+      (!game.paused && !game.running && ball.attached && Boolean(game.message))
+    )
+  );
+}
+
+function persistResumableGameState() {
+  if (!isResumableStoredGameState()) {
     clearPersistedPausedGameState();
     return false;
   }
@@ -911,7 +923,19 @@ function restorePausedGameState() {
       throw new Error(t("savedGame.restoreFailed"));
     }
 
-    if (snapshot.game.running !== true || !Array.isArray(snapshot.bricks) || snapshot.bricks.length === 0) {
+    if (!Array.isArray(snapshot.bricks) || snapshot.bricks.length === 0) {
+      throw new Error(t("savedGame.restoreFailed"));
+    }
+
+    const snapshotIsPaused = snapshot.game.paused === true && snapshot.game.running === true;
+    const snapshotIsOverlayStart =
+      snapshot.game.paused !== true &&
+      snapshot.game.running !== true &&
+      snapshot.ball.attached === true &&
+      typeof snapshot.game.message === "string" &&
+      snapshot.game.message.length > 0;
+
+    if (!snapshotIsPaused && !snapshotIsOverlayStart) {
       throw new Error(t("savedGame.restoreFailed"));
     }
 
@@ -919,7 +943,7 @@ function restorePausedGameState() {
     game.lives = Math.max(0, Math.floor(normalizeSavedNumber(snapshot.game.lives, 3)));
     game.level = Math.max(1, Math.floor(normalizeSavedNumber(snapshot.game.level, 1)));
     game.running = snapshot.game.running === true;
-    game.paused = true;
+    game.paused = snapshot.game.paused === true;
     game.won = snapshot.game.won === true;
     game.message = typeof snapshot.game.message === "string" ? snapshot.game.message : "";
     game.startOverlayMode = snapshot.game.startOverlayMode === "continue" ? "continue" : "levelStart";
@@ -1394,7 +1418,7 @@ function pauseGame() {
   game.paused = true;
   controls.left = false;
   controls.right = false;
-  persistPausedGameState();
+  persistResumableGameState();
   renderStartOverlay();
   renderPauseOverlay();
   playSound("pause");
@@ -1418,6 +1442,10 @@ function resumeGame() {
 }
 
 function showLeaderboard(mode) {
+  if (mode === "intro" || mode === "gameover") {
+    clearPersistedPausedGameState();
+  }
+
   game.paused = false;
   leaderboardState.mode = mode;
   leaderboardState.scoreSaved = mode !== "gameover";
@@ -2021,6 +2049,7 @@ function launchBall() {
   }
 
   unlockAudio();
+  clearPersistedPausedGameState();
   const baseSpeed = getCurrentBallBaseSpeed();
   ball.attached = false;
   ball.stickyAttachment = false;
@@ -2036,7 +2065,7 @@ function launchBall() {
   playSound("launch");
 }
 
-function resetRound() {
+function resetRound({ persistState = true } = {}) {
   const isLifeContinuation = game.running || game.message === "";
   fallingBonuses = [];
   projectiles = [];
@@ -2057,6 +2086,10 @@ function resetRound() {
   game.startOverlayMode = isLifeContinuation ? "continue" : "levelStart";
   renderStartOverlay();
   renderPauseOverlay();
+
+  if (persistState) {
+    persistResumableGameState();
+  }
 }
 
 function resetGame() {
@@ -2069,7 +2102,7 @@ function resetGame() {
   game.pendingLevelAdvance = false;
   clearEffects();
   createBricks();
-  resetRound();
+  resetRound({ persistState: false });
   updateHud();
 }
 

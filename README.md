@@ -27,7 +27,7 @@ Projekt powstał jako statyczna aplikacja front-endowa:
 - syntetyczne efekty dźwiękowe w kosmicznym stylu, w tym osobne SFX dla dobrych i złych bonusów,
 - automatyczny dobór języka interfejsu na podstawie ustawień przeglądarki (`pl`, `en`, `nl`, `sv`, `fi`, `es`, `ru`, `fr`, `it`, `de`, `zh`, `ja`),
 - pauza uruchamiana klawiszem `P` oraz automatycznie po utracie fokusu karty,
-- pauza zapisuje stan aktywnej rundy do `localStorage`, więc po zamknięciu karty można wrócić do rozgrywki dokładnie z miejsca przerwania,
+- wznowialne stany rundy zapisują się do `localStorage`, więc po zamknięciu karty można wrócić zarówno do aktywnej pauzy, jak i do ekranu startu kolejnego levelu lub kontynuacji po stracie życia,
 - tablica wyników z limitem **top 10**,
 - lokalna kopia hi-score w `localStorage`,
 - ostatnio użyte imię gracza zapamiętywane w `sessionStorage` w ramach bieżącej sesji przeglądarki,
@@ -64,7 +64,7 @@ Cel jest prosty: odbijaj piłkę, niszcz cegły i nie pozwól jej spaść pod pa
 - `→` / `D` — ruch paletki w prawo
 - `Spacja` — akcja tylko w trakcie aktywnej rundy, np. strzał z działa albo wypuszczenie przyklejonej piłki
 - `Esc` — pauza
-- pauza zapisuje stan tylko wtedy, gdy runda jest aktywna; po ponownym otwarciu gry wznowisz ją z ekranu pauzy
+- gra zapisuje do wznowienia zarówno aktywną pauzę, jak i oczekiwanie na start piłki po nowym levelu lub po utracie życia
 
 ### Mysz i touch
 
