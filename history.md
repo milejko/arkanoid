@@ -232,3 +232,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 225. `fix: upraszczamy fizyke pilki i usuwamy aktywne podkrecanie, zeby po odbiciu nie leciala lukiem`
 226. `feat: dokladamy locale es/ru/fr/it/de/zh/ja i rozszerzamy auto-wybor jezyka przegladarki`
 227. `fix: przejscie do kolejnego poziomu rozstrzygamy po calej klatce gry, zeby zbicie ostatniego kafla pilka albo super-armata nie zawieszalo konca rundy`
+228. `feat: frontend leaderboardu przechodzi z Google Apps Script na Supabase REST API z tabela leaderboard_entries`

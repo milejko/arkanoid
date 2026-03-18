@@ -40,8 +40,9 @@ const controls = {
 let lastOutsideCanvasActionAt = 0;
 let lastCanvasTouchActionAt = 0;
 
-const LEADERBOARD_API_URL =
-  "https://script.google.com/macros/s/AKfycbwjoeNIwfr1osYeAE5jLy_69eaVCosVN-KQcaLQ4VDIKmrnK6LZ6t1_RynHlwnk1wec/exec";
+const LEADERBOARD_SUPABASE_URL = "https://rbkkcjxzzhhusuokzted.supabase.co";
+const LEADERBOARD_SUPABASE_ANON_KEY = "sb_publishable_wf-zkwg_jmhpnA9pm0RgNA_Uk_aSTFf";
+const LEADERBOARD_SUPABASE_TABLE = "leaderboard_entries";
 const MAX_HIGH_SCORES = 10;
 const LEADERBOARD_CACHE_KEY = "arkanoid-leaderboard-cache";
 const CANVAS_EDGE_MARGIN = 12;
@@ -698,7 +699,7 @@ function normalizeHighScoreEntry(entry) {
 
   return {
     name: name || "ANONIM",
-    deviceType: normalizeDeviceType(entry.deviceType),
+    deviceType: normalizeDeviceType(entry.deviceType ?? entry.device_type),
     level,
     score,
   };
@@ -780,7 +781,27 @@ function useCachedHighScores() {
 }
 
 function isLeaderboardBackendConfigured() {
-  return !LEADERBOARD_API_URL.includes("REPLACE_WITH_DEPLOYED_WEB_APP_ID");
+  return (
+    !LEADERBOARD_SUPABASE_URL.includes("REPLACE_WITH_SUPABASE_URL") &&
+    !LEADERBOARD_SUPABASE_ANON_KEY.includes("REPLACE_WITH_SUPABASE_ANON_KEY")
+  );
+}
+
+function getLeaderboardEndpoint(query = "") {
+  return `${LEADERBOARD_SUPABASE_URL}/rest/v1/${LEADERBOARD_SUPABASE_TABLE}${query}`;
+}
+
+function getLeaderboardRequestHeaders({ includeJsonContentType = false } = {}) {
+  const headers = {
+    apikey: LEADERBOARD_SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${LEADERBOARD_SUPABASE_ANON_KEY}`,
+  };
+
+  if (includeJsonContentType) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return headers;
 }
 
 function getLeaderboardStatusMessage() {
@@ -856,6 +877,10 @@ function renderLeaderboardStatus() {
 }
 
 function parseLeaderboardPayload(payload) {
+  if (Array.isArray(payload)) {
+    return normalizeHighScoreEntries(payload);
+  }
+
   if (!payload || typeof payload !== "object") {
     throw new Error(t("leaderboard.errors.invalidPayload", {}, "Nieprawidłowa odpowiedź backendu leaderboardu."));
   }
@@ -881,16 +906,22 @@ async function fetchLeaderboardEntries() {
       t(
         "leaderboard.errors.notConfigured",
         {},
-        "Backend leaderboardu nie jest jeszcze skonfigurowany. Wdróż Apps Script i podmień LEADERBOARD_API_URL."
+        "Backend leaderboardu nie jest jeszcze skonfigurowany. Ustaw adres projektu Supabase i anon key."
       )
     );
   }
 
+  const query = new URLSearchParams({
+    select: "name,device_type,level,score",
+    order: "score.desc,level.desc,name.asc",
+    limit: String(MAX_HIGH_SCORES),
+  });
   const response = await window.fetch(
-    `${LEADERBOARD_API_URL}?limit=${encodeURIComponent(MAX_HIGH_SCORES)}`,
+    getLeaderboardEndpoint(`?${query.toString()}`),
     {
       method: "GET",
       cache: "no-store",
+      headers: getLeaderboardRequestHeaders(),
     }
   );
 
@@ -935,24 +966,30 @@ async function persistHighScore(entry) {
       t(
         "leaderboard.errors.notConfigured",
         {},
-        "Backend leaderboardu nie jest jeszcze skonfigurowany. Wdróż Apps Script i podmień LEADERBOARD_API_URL."
+        "Backend leaderboardu nie jest jeszcze skonfigurowany. Ustaw adres projektu Supabase i anon key."
       )
     );
   }
 
-  const response = await window.fetch(LEADERBOARD_API_URL, {
+  const response = await window.fetch(getLeaderboardEndpoint(), {
     method: "POST",
     headers: {
-      "Content-Type": "text/plain;charset=utf-8",
+      ...getLeaderboardRequestHeaders({ includeJsonContentType: true }),
+      Prefer: "return=minimal",
     },
-    body: JSON.stringify(entry),
+    body: JSON.stringify({
+      name: entry.name,
+      device_type: normalizeDeviceType(entry.deviceType),
+      level: entry.level,
+      score: entry.score,
+    }),
   });
 
   if (!response.ok) {
     throw new Error(t("leaderboard.errors.saveStatus", { status: response.status }, `Nie udało się zapisać wyniku (${response.status}).`));
   }
 
-  return parseLeaderboardPayload(await response.json());
+  return fetchLeaderboardEntries();
 }
 
 function renderHighScores() {
@@ -1182,7 +1219,7 @@ async function saveCurrentScore() {
         : t(
             "leaderboard.saveGoogleFailed",
             {},
-            "Nie udało się zapisać wyniku w Google. Wynik pozostał w lokalnej kopii."
+            "Nie udało się zapisać wyniku w backendzie leaderboardu. Wynik pozostał w lokalnej kopii."
           );
     leaderboardState.statusTone = "info";
   } finally {

@@ -1,6 +1,6 @@
 # Arkanoid
 
-Nowoczesna, przeglądarkowa wariacja na temat klasycznego **Arkanoida**. Projekt jest napisany w czystym HTML, CSS i JavaScript, bez bundlera i bez frameworków. Gra działa jako pojedyncza strona, ma responsywny interfejs, system poziomów, bonusy, pauzę oraz tablicę wyników opartą o Google Sheets.
+Nowoczesna, przeglądarkowa wariacja na temat klasycznego **Arkanoida**. Projekt jest napisany w czystym HTML, CSS i JavaScript, bez bundlera i bez frameworków. Gra działa jako pojedyncza strona, ma responsywny interfejs, system poziomów, bonusy, pauzę oraz tablicę wyników opartą o Supabase.
 
 Zagraj online: [https://milejko.github.io/arkanoid/](https://milejko.github.io/arkanoid/) — publiczna wersja gry dostępna w przeglądarce.
 
@@ -14,7 +14,8 @@ Projekt powstał jako statyczna aplikacja front-endowa:
 - `locales/*.js` przechowują zewnętrzne tłumaczenia interfejsu ładowane według języka przeglądarki,
 - `styles.css` odpowiada za wygląd, responsywność i warstwę wizualną,
 - `script.js` zawiera całą logikę gry,
-- `google-apps-script/Code.gs` obsługuje backend tablicy wyników.
+- `google-apps-script/Code.gs` pozostaje jako historyczny skrypt do wcześniejszego backendu / importu danych,
+- Supabase przechowuje online tablicę wyników, a `script.js` komunikuje się z nim bezpośrednio przez REST API.
 
 ## Najważniejsze funkcje
 
@@ -29,7 +30,7 @@ Projekt powstał jako statyczna aplikacja front-endowa:
 - pauza uruchamiana klawiszem `P` oraz automatycznie po utracie fokusu karty,
 - tablica wyników z limitem **top 10**,
 - lokalna kopia hi-score w `localStorage`,
-- synchronizacja wyników z Google Sheets przez Google Apps Script,
+- synchronizacja wyników z Supabase,
 - responsywny interfejs dla desktopu i urządzeń mobilnych,
 - wersjonowanie widoczne w prawym dolnym rogu.
 
@@ -97,7 +98,7 @@ Na wyższych poziomach część zwykłych cegieł zastępowana jest przez cztery
 Gra korzysta z dwóch warstw przechowywania wyników:
 
 1. **Lokalna kopia** w `localStorage` — szybki odczyt i fallback, gdy sieć jest wolna albo backend chwilowo nie odpowiada.
-2. **Google Sheets + Google Apps Script** — źródło online dla wspólnej tablicy wyników.
+2. **Supabase** — źródło online dla wspólnej tablicy wyników.
 
 Najważniejsze zasady:
 
@@ -132,25 +133,19 @@ Następnie otwórz stronę pod lokalnym adresem serwera, np. `http://localhost:8
 
 ## Leaderboard online
 
-Backend wyników znajduje się w:
-
-- `google-apps-script/Code.gs`
-
-Frontend komunikuje się z nim przez:
-
-- `LEADERBOARD_API_URL` w `script.js`
+Backend wyników znajduje się w Supabase, a frontend komunikuje się z nim przez publiczny endpoint REST konfigurowany w `script.js`.
 
 Obecna implementacja:
 
 - odczytuje top 10 przez `GET`,
 - zapisuje wynik przez `POST`,
-- przechowuje dane w arkuszu Google Sheets,
+- przechowuje dane w tabeli `leaderboard_entries`,
 - zwraca wyniki posortowane po punktach, poziomie i nazwie.
 
-Jeśli chcesz przenieść leaderboard na inne konto lub inny arkusz, trzeba zaktualizować:
+Jeśli chcesz przenieść leaderboard na inny projekt Supabase, trzeba zaktualizować:
 
-- identyfikator arkusza w `google-apps-script/Code.gs`,
-- URL wdrożonego web appa w `script.js`.
+- `LEADERBOARD_SUPABASE_URL` w `script.js`,
+- `LEADERBOARD_SUPABASE_ANON_KEY` w `script.js`.
 
 ## Rozwój projektu
 
