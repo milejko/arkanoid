@@ -1614,6 +1614,25 @@ function advanceToNextLevel() {
   updateHud();
 }
 
+function resolveLevelClearState() {
+  if (leaderboardState.mode || game.lives <= 0) {
+    return false;
+  }
+
+  if (hasRemainingDestructibleBricks()) {
+    return false;
+  }
+
+  game.pendingLevelAdvance = true;
+
+  if (fallingBonuses.length > 0) {
+    return false;
+  }
+
+  advanceToNextLevel();
+  return true;
+}
+
 function syncPaddleWidth() {
   const playfieldLeft = getPlayfieldLeftBoundary();
   const playfieldWidth = getPlayfieldWidth();
@@ -1887,13 +1906,7 @@ function hitBrick(brick, { canDestroyWalls = false, instantDestroy = false } = {
   updateHud();
 
   if (!hasRemainingDestructibleBricks()) {
-    game.pendingLevelAdvance = fallingBonuses.length > 0;
-
-    if (!game.pendingLevelAdvance) {
-      game.running = false;
-      advanceToNextLevel();
-    }
-
+    game.pendingLevelAdvance = true;
     return;
   }
 
@@ -2141,20 +2154,11 @@ function updateFallingBonuses(deltaSeconds) {
       }
 
       fallingBonuses.splice(index, 1);
-
-      if (game.pendingLevelAdvance && fallingBonuses.length === 0) {
-        advanceToNextLevel();
-      }
-
       continue;
     }
 
     if (bonus.y - bonus.size / 2 > getPlayfieldBottomBoundary()) {
       fallingBonuses.splice(index, 1);
-
-      if (game.pendingLevelAdvance && fallingBonuses.length === 0) {
-        advanceToNextLevel();
-      }
     }
   }
 }
@@ -3446,6 +3450,10 @@ function animate(timestamp) {
 
   if (game.running && !game.paused) {
     updateBall(deltaSeconds);
+  }
+
+  if (!game.paused) {
+    resolveLevelClearState();
   }
 
   draw();
