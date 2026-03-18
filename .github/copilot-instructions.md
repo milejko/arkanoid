@@ -12,7 +12,7 @@
 - The game loop is `animate()`, which advances input-driven movement and timers first, updates ball physics only while `game.running` is true, then renders in a fixed order with `drawBackground()`, `drawBricks()`, `drawFallingBonuses()`, `drawProjectiles()`, `drawPaddle()`, `drawBall()`, and `drawMessage()`.
 - Layout is derived at runtime, with `getBrickRows()`/`getBrickColumns()` currently returning a fixed `5x8` grid. `resizeCanvas()` recalculates canvas dimensions and attached-ball positioning, while `createBricks()` and `layoutBricks()` size and position that grid and then randomly assign bonus bricks.
 - Game flow is split between round-level reset and whole-game reset. `resetRound()` recenters the paddle/ball and preserves the current board, while `resetGame()` also resets score, lives, level, effects, and bricks. `loseLife()` clears active effects and falling entities before either starting the next round or showing the leaderboard overlay.
-- The leaderboard now uses Supabase via its REST API. The browser reads and writes directly through the Supabase URL / anon key constants in `script.js`, while `google-apps-script/Code.gs` only remains as legacy import/reference code.
+- The leaderboard now uses Supabase via its REST API. The browser reads and writes directly through the Supabase URL / anon key constants in `script.js`.
 - The square canvas now contains a real inner playfield inset of `4px` on every side via `PLAYFIELD_INSET`. Geometry helpers such as `getTileWidth()`, `getTileHeight()`, `getPlayfield*Boundary()`, `getBrickTopOffset()`, and `getPaddleY()` all work from that inset playfield, not from the raw canvas edges.
 
 ## Key conventions

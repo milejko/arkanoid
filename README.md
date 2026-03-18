@@ -14,7 +14,6 @@ Projekt powstał jako statyczna aplikacja front-endowa:
 - `locales/*.js` przechowują zewnętrzne tłumaczenia interfejsu ładowane według języka przeglądarki,
 - `styles.css` odpowiada za wygląd, responsywność i warstwę wizualną,
 - `script.js` zawiera całą logikę gry,
-- `google-apps-script/Code.gs` pozostaje jako historyczny skrypt do wcześniejszego backendu / importu danych,
 - Supabase przechowuje online tablicę wyników, a `script.js` komunikuje się z nim bezpośrednio przez REST API.
 
 ## Najważniejsze funkcje
@@ -122,10 +121,9 @@ Następnie otwórz stronę pod lokalnym adresem serwera, np. `http://localhost:8
 
 ```text
 .
-├── google-apps-script/
-│   └── Code.gs
 ├── history.md
 ├── index.html
+├── locales/
 ├── README.md
 ├── script.js
 └── styles.css

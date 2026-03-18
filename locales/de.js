@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "Lokale zwischengespeicherte Kopie der Bestenliste wird angezeigt.",
     cachedFallback: "{error} Lokale zwischengespeicherte Kopie der Punktestände wird angezeigt.",
     saveRetained: "{error} Der Punktestand blieb im lokalen Cache.",
-    saveGoogleFailed: "Der Punktestand konnte nicht im Bestenlisten-Backend gespeichert werden. Er blieb im lokalen Cache.",
+    saveBackendFailed: "Der Punktestand konnte nicht im Bestenlisten-Backend gespeichert werden. Er blieb im lokalen Cache.",
     errors: {
       invalidPayload: "Ungültige Antwort vom Bestenlisten-Backend.",
       backendError: "Das Bestenlisten-Backend hat einen Fehler zurückgegeben.",

@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "Affichage de la copie locale en cache du classement.",
     cachedFallback: "{error} Affichage de la copie locale en cache des scores.",
     saveRetained: "{error} Le score est resté dans le cache local.",
-    saveGoogleFailed: "Impossible d'enregistrer le score dans le backend du classement. Le score est resté dans le cache local.",
+    saveBackendFailed: "Impossible d'enregistrer le score dans le backend du classement. Le score est resté dans le cache local.",
     errors: {
       invalidPayload: "Réponse invalide du backend du classement.",
       backendError: "Le backend du classement a renvoyé une erreur.",

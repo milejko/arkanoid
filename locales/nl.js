@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "Lokale cachekopie van het scorebord wordt getoond.",
     cachedFallback: "{error} Lokale cachekopie van de scores wordt getoond.",
     saveRetained: "{error} De score bleef in de lokale cache staan.",
-    saveGoogleFailed: "De score kon niet in de scorebord-backend worden opgeslagen. De score bleef in de lokale cache staan.",
+    saveBackendFailed: "De score kon niet in de scorebord-backend worden opgeslagen. De score bleef in de lokale cache staan.",
     errors: {
       invalidPayload: "Ongeldige reactie van de scorebord-backend.",
       backendError: "De scorebord-backend gaf een fout terug.",

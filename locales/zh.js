@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "正在显示排行榜的本地缓存副本。",
     cachedFallback: "{error} 正在显示分数的本地缓存副本。",
     saveRetained: "{error} 分数已保留在本地缓存中。",
-    saveGoogleFailed: "无法将分数保存到排行榜后端。分数已保留在本地缓存中。",
+    saveBackendFailed: "无法将分数保存到排行榜后端。分数已保留在本地缓存中。",
     errors: {
       invalidPayload: "排行榜后端返回了无效响应。",
       backendError: "排行榜后端返回了错误。",

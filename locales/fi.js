@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "Näytetään tulostaulun paikallinen välimuistikopio.",
     cachedFallback: "{error} Näytetään tulosten paikallinen välimuistikopio.",
     saveRetained: "{error} Tulos jäi paikalliseen välimuistiin.",
-    saveGoogleFailed: "Tulosta ei voitu tallentaa tulostaulun taustapalveluun. Tulos jäi paikalliseen välimuistiin.",
+    saveBackendFailed: "Tulosta ei voitu tallentaa tulostaulun taustapalveluun. Tulos jäi paikalliseen välimuistiin.",
     errors: {
       invalidPayload: "Virheellinen vastaus tulostaulun taustapalvelulta.",
       backendError: "Tulostaulun taustapalvelu palautti virheen.",

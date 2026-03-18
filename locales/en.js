@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "Showing the local cached leaderboard copy.",
     cachedFallback: "{error} Showing the local cached scores.",
     saveRetained: "{error} The score stayed in the local cache.",
-    saveGoogleFailed: "Couldn't save the score to the leaderboard backend. The score stayed in the local cache.",
+    saveBackendFailed: "Couldn't save the score to the leaderboard backend. The score stayed in the local cache.",
     errors: {
       invalidPayload: "Invalid leaderboard backend response.",
       backendError: "The leaderboard backend returned an error.",

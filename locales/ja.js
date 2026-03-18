@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "ランキングのローカルキャッシュを表示しています。",
     cachedFallback: "{error} スコアのローカルキャッシュを表示しています。",
     saveRetained: "{error} スコアはローカルキャッシュに残りました。",
-    saveGoogleFailed: "ランキングのバックエンドにスコアを保存できませんでした。スコアはローカルキャッシュに残りました。",
+    saveBackendFailed: "ランキングのバックエンドにスコアを保存できませんでした。スコアはローカルキャッシュに残りました。",
     errors: {
       invalidPayload: "ランキングバックエンドから無効な応答が返されました。",
       backendError: "ランキングバックエンドがエラーを返しました。",

@@ -1217,7 +1217,7 @@ async function saveCurrentScore() {
       error instanceof Error
         ? t("leaderboard.saveRetained", { error: error.message }, `${error.message} Wynik pozostał w lokalnej kopii.`)
         : t(
-            "leaderboard.saveGoogleFailed",
+            "leaderboard.saveBackendFailed",
             {},
             "Nie udało się zapisać wyniku w backendzie leaderboardu. Wynik pozostał w lokalnej kopii."
           );

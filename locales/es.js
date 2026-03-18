@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "Mostrando la copia local en caché de la clasificación.",
     cachedFallback: "{error} Mostrando la copia local en caché de las puntuaciones.",
     saveRetained: "{error} La puntuación se quedó en la caché local.",
-    saveGoogleFailed: "No se pudo guardar la puntuación en el backend de la clasificación. La puntuación se quedó en la caché local.",
+    saveBackendFailed: "No se pudo guardar la puntuación en el backend de la clasificación. La puntuación se quedó en la caché local.",
     errors: {
       invalidPayload: "Respuesta no válida del backend de la clasificación.",
       backendError: "El backend de la clasificación devolvió un error.",

@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "Показывается локальная кэш-копия таблицы рекордов.",
     cachedFallback: "{error} Показывается локальная кэш-копия результатов.",
     saveRetained: "{error} Результат остался в локальном кэше.",
-    saveGoogleFailed: "Не удалось сохранить результат в backend таблицы рекордов. Результат остался в локальном кэше.",
+    saveBackendFailed: "Не удалось сохранить результат в backend таблицы рекордов. Результат остался в локальном кэше.",
     errors: {
       invalidPayload: "Некорректный ответ от backend таблицы рекордов.",
       backendError: "Backend таблицы рекордов вернул ошибку.",

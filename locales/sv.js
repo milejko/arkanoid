@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "Visar den lokala cachekopian av topplistan.",
     cachedFallback: "{error} Visar den lokala cachekopian av poängen.",
     saveRetained: "{error} Poängen stannade i den lokala cachen.",
-    saveGoogleFailed: "Det gick inte att spara poängen i topplistans backend. Poängen stannade i den lokala cachen.",
+    saveBackendFailed: "Det gick inte att spara poängen i topplistans backend. Poängen stannade i den lokala cachen.",
     errors: {
       invalidPayload: "Ogiltigt svar från toppliste-backenden.",
       backendError: "Toppliste-backenden returnerade ett fel.",

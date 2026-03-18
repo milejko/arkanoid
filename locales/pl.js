@@ -56,7 +56,7 @@ window.ARKANOID_LOCALE_DATA = {
     showingCachedCopy: "Wyświetlam lokalną kopię tablicy wyników.",
     cachedFallback: "{error} Wyświetlam lokalną kopię wyników.",
     saveRetained: "{error} Wynik pozostał w lokalnej kopii.",
-    saveGoogleFailed: "Nie udało się zapisać wyniku w backendzie leaderboardu. Wynik pozostał w lokalnej kopii.",
+    saveBackendFailed: "Nie udało się zapisać wyniku w backendzie leaderboardu. Wynik pozostał w lokalnej kopii.",
     errors: {
       invalidPayload: "Nieprawidłowa odpowiedź backendu leaderboardu.",
       backendError: "Backend leaderboardu zwrócił błąd.",
