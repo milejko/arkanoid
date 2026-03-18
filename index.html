@@ -6,16 +6,16 @@
     <title>Arkanoid</title>
     <script>
       (() => {
-        const historyEntryNumber = 225;
+        const historyEntryNumber = 226;
         const major = Math.floor(historyEntryNumber / 100);
         const minor = Math.floor((historyEntryNumber % 100) / 10);
         const patch = historyEntryNumber % 10;
         const version = `${major}.${minor}.${patch}`;
-        const lastUpdated = "17.03.2026 16:44";
+        const lastUpdated = "18.03.2026 08:18";
         window.APP_HISTORY_ENTRY_NUMBER = historyEntryNumber;
         window.APP_VERSION = version;
         window.APP_LAST_UPDATED = lastUpdated;
-        const supportedLocales = ["pl", "en", "nl", "sv", "fi"];
+        const supportedLocales = ["pl", "en", "nl", "sv", "fi", "es", "ru", "fr", "it", "de", "zh", "ja"];
         const browserLanguages = Array.isArray(navigator.languages) && navigator.languages.length
           ? navigator.languages
           : [navigator.language || "en"];

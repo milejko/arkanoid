@@ -230,3 +230,4 @@ Plik utrzymywany na bieżąco. Każde kolejne polecenie użytkownika w tej sesji
 223. `feat: interfejs dostaje zewnetrzne pliki locale i auto-wybor jezyka przegladarki dla pl/en/nl/sv/fi`
 224. `fix: domyslny fallback jezyka zmieniamy z polskiego na angielski`
 225. `fix: upraszczamy fizyke pilki i usuwamy aktywne podkrecanie, zeby po odbiciu nie leciala lukiem`
+226. `feat: dokladamy locale es/ru/fr/it/de/zh/ja i rozszerzamy auto-wybor jezyka przegladarki`

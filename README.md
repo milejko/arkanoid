@@ -25,7 +25,7 @@ Projekt powstał jako statyczna aplikacja front-endowa:
 - betonowe, kryształowe i czarne diamentowe cegły wymagające wielu trafień na wyższych poziomach,
 - system bonusów pozytywnych i negatywnych,
 - syntetyczne efekty dźwiękowe w kosmicznym stylu, w tym osobne SFX dla dobrych i złych bonusów,
-- automatyczny dobór języka interfejsu na podstawie ustawień przeglądarki (`pl`, `en`, `nl`, `sv`, `fi`),
+- automatyczny dobór języka interfejsu na podstawie ustawień przeglądarki (`pl`, `en`, `nl`, `sv`, `fi`, `es`, `ru`, `fr`, `it`, `de`, `zh`, `ja`),
 - pauza uruchamiana klawiszem `P` oraz automatycznie po utracie fokusu karty,
 - tablica wyników z limitem **top 10**,
 - lokalna kopia hi-score w `localStorage`,
